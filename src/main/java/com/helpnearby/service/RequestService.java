@@ -4,6 +4,7 @@ import com.helpnearby.entities.Request;
 import com.helpnearby.repository.RequestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +29,9 @@ public class RequestService {
 
 	// Read all
 	public List<Request> getAllRequests() {
-		return requestRepository.findAll();
+		return requestRepository.findAll(
+		        Sort.by(Sort.Direction.DESC, "createdAt")
+		);
 	}
 
 	// Read by ID
