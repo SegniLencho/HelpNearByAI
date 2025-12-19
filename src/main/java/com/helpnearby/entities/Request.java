@@ -27,6 +27,9 @@ public class Request {
     private double latitude;
 
     private double longitude;
+    
+    private String status;
+
 
 //    @ElementCollection
 //    @CollectionTable(name = "request_images", joinColumns = @JoinColumn(name = "request_id"))
@@ -129,6 +132,14 @@ public class Request {
 
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
     
