@@ -1,9 +1,12 @@
 package com.helpnearby.controller;
 
+import com.helpnearby.dto.FileMeta;
+import com.helpnearby.dto.PresignedUpload;
 import com.helpnearby.entities.Request;
 import com.helpnearby.service.RequestService;
+import com.helpnearby.service.S3UploadService;
+
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/requests")
 public class RequestsController {
 
-	@Autowired
 	private RequestService requestService;
+
+	private final S3UploadService s3UploadService;
+
+	public RequestsController(RequestService requestService, S3UploadService s3UploadService) {
+		this.requestService = requestService;
+		this.s3UploadService = s3UploadService;
+	}
 
 	// Create
 	@PostMapping
@@ -60,5 +69,10 @@ public class RequestsController {
 	public ResponseEntity<Void> deleteRequest(@PathVariable String id) {
 		requestService.deleteRequest(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/presign")
+	public List<PresignedUpload> presign(@RequestBody List<FileMeta> files) {
+		return files.stream().map(f -> s3UploadService.generatePresignedUrl(f.fileName(), f.contentType())).toList();
 	}
 }
