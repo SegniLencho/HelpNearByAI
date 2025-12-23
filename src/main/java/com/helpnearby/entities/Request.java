@@ -1,17 +1,16 @@
 package com.helpnearby.entities;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
-
-import ch.qos.logback.classic.Logger;
 
 @Entity
 @Table(name = "requests")
 public class Request {
 
     @Id
+    @Column(length = 36)
     private String id;
 
     @Column(name = "user_id", nullable = false)
@@ -29,120 +28,136 @@ public class Request {
     private double latitude;
 
     private double longitude;
-    
-    private String status;//OPEN,INPROGRESS,CLOSED
 
-    
+    // OPEN, INPROGRESS, CLOSED
+    private String status;
+
     @ElementCollection
-    @CollectionTable(name = "request_images", joinColumns = @JoinColumn(name = "request_id"))
+    @CollectionTable(
+        name = "request_images",
+        joinColumns = @JoinColumn(name = "request_id")
+    )
     @Column(name = "image_urls")
     private List<String> imageUrls;
 
-    private String urgency; // MEDIUM, LOW, URGENT
+    // LOW, MEDIUM, URGENT
+    private String urgency;
 
-    private LocalDateTime createdAt;
+    /**
+     * ALWAYS stored in UTC
+     */
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
 
     public Request() {
         this.id = UUID.randomUUID().toString();
-        this.createdAt = LocalDateTime.now();
-        this.urgency = "OPEN";
     }
 
-	public String getId() {
-		return id;
-	}
+    /**
+     * Ensures UTC timestamp is set automatically
+     */
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = Instant.now(); // UTC
+        if (this.status == null) {
+            this.status = "OPEN";
+        }
+        if (this.urgency == null) {
+            this.urgency = "MEDIUM";
+        }
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    // ================= GETTERS & SETTERS =================
 
-	public String getUserId() {
-		return userId;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setUserId(String userId) {
-		this.userId = userId;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getTitle() {
-		return title;
-	}
+    public String getUserId() {
+        return userId;
+    }
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public String getTitle() {
+        return title;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-	public String getCategory() {
-		return category;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setCategory(String category) {
-		this.category = category;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public Double getReward() {
-		return reward;
-	}
+    public String getCategory() {
+        return category;
+    }
 
-	public void setReward(Double reward) {
-		this.reward = reward;
-	}
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
-	public double getLatitude() {
-		return latitude;
-	}
+    public Double getReward() {
+        return reward;
+    }
 
-	public void setLatitude(double latitude) {
-		this.latitude = latitude;
-	}
+    public void setReward(Double reward) {
+        this.reward = reward;
+    }
 
-	public double getLongitude() {
-		return longitude;
-	}
+    public double getLatitude() {
+        return latitude;
+    }
 
-	public void setLongitude(double longitude) {
-		this.longitude = longitude;
-	}
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
 
-	public List<String> getImageUrls() {
-		return imageUrls;
-	}
+    public double getLongitude() {
+        return longitude;
+    }
 
-	public void setImageUrls(List<String> imageUrls) {
-		this.imageUrls = imageUrls;
-	}
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
 
-	public String getUrgency() {
-		return urgency;
-	}
+    public String getStatus() {
+        return status;
+    }
 
-	public void setUrgency(String urgency) {
-		this.urgency = urgency;
-	}
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
 
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
+    }
 
-	public String getStatus() {
-		return status;
-	}
+    public String getUrgency() {
+        return urgency;
+    }
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
+    public void setUrgency(String urgency) {
+        this.urgency = urgency;
+    }
 
-    
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }
