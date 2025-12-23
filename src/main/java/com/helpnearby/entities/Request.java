@@ -5,6 +5,8 @@ import java.util.List;
 import jakarta.persistence.*;
 import java.util.UUID;
 
+import ch.qos.logback.classic.Logger;
+
 @Entity
 @Table(name = "requests")
 public class Request {
@@ -28,15 +30,15 @@ public class Request {
 
     private double longitude;
     
-    private String status;
+    private String status;//OPEN,INPROGRESS,CLOSED
 
-
-//    @ElementCollection
-//    @CollectionTable(name = "request_images", joinColumns = @JoinColumn(name = "request_id"))
-//    @Column(name = "image_url")
+    
+    @ElementCollection
+    @CollectionTable(name = "request_images", joinColumns = @JoinColumn(name = "request_id"))
+    @Column(name = "image_urls")
     private List<String> imageUrls;
 
-    private String urgency; // OPEN, IN_PROGRESS, COMPLETED, CANCELLED
+    private String urgency; // MEDIUM, LOW, URGENT
 
     private LocalDateTime createdAt;
 
