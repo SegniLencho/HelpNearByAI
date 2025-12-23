@@ -14,30 +14,30 @@ public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        
-        // Allow requests from your React Native web app
-        config.setAllowedOrigins(Arrays.asList(
+
+        config.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*",
+            "https://*.railway.app",
             "http://localhost:8081",
             "http://localhost:19006",
             "http://127.0.0.1:8081",
             "http://127.0.0.1:19006"
         ));
-        
-        // Allow all HTTP methods
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        
-        // Allow all headers
-//        config.setAllowedHeaders(Arrays.asList("*"));
-        
-        // Allow credentials
+
+        config.setAllowedMethods(Arrays.asList(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+
+        config.setAllowedHeaders(Arrays.asList("*"));
+
         config.setAllowCredentials(true);
-        
-        // How long the response from a pre-flight request can be cached
         config.setMaxAge(3600L);
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", config);
-        
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", config);
+
         return new CorsFilter(source);
     }
 }
