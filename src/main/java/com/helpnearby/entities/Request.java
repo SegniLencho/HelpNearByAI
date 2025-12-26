@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+
 @Entity
 @Table(name = "requests")
 public class Request {
@@ -43,6 +44,9 @@ public class Request {
     // LOW, MEDIUM, URGENT
     private String urgency;
 
+    @Column(nullable = false)
+    private Instant updatedAt;
+
     /**
      * ALWAYS stored in UTC
      */
@@ -58,17 +62,18 @@ public class Request {
      */
     @PrePersist
     protected void onCreate() {
-        this.createdAt = Instant.now(); // UTC
-        if (this.status == null) {
-            this.status = "OPEN";
-        }
-        if (this.urgency == null) {
-            this.urgency = "MEDIUM";
-        }
+        Instant now = Instant.now();
+        this.createdAt = now;   // UTC
+        this.updatedAt = now;   // same on creation
+        if (this.status == null) this.status = "OPEN";
+        if (this.urgency == null) this.urgency = "MEDIUM";
     }
 
-    // ================= GETTERS & SETTERS =================
-
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now(); // UTC
+    }
+    
     public String getId() {
         return id;
     }
@@ -160,4 +165,17 @@ public class Request {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+	public Instant getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Instant updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
+	}
+    
 }
