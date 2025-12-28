@@ -5,11 +5,12 @@ import java.time.LocalDateTime;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
 @Entity
 @Table(name = "users")
 public class User {
 
-    @Id
+	@Id
 	private String id;
 	private String name;
 	private String email;
@@ -19,6 +20,7 @@ public class User {
 	private double longitude;
 	private String authProvider; // GOOGLE, APPLE, EMAIL
 	private LocalDateTime createdAt;
+	private String profile_picture_url;
 
 	public String getId() {
 		return id;
@@ -90,6 +92,14 @@ public class User {
 
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public String getProfile_picture_url() {
+		return profile_picture_url;
+	}
+
+	public void setProfile_picture_url(String profile_picture_url) {
+		this.profile_picture_url = profile_picture_url;
 	}
 
 }
