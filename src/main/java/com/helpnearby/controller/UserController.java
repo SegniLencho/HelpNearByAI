@@ -1,6 +1,10 @@
 package com.helpnearby.controller;
 
+import com.helpnearby.dto.FileMeta;
+import com.helpnearby.dto.PresignedUpload;
 import com.helpnearby.entities.User;
+import com.helpnearby.service.RequestService;
+import com.helpnearby.service.S3UploadService;
 import com.helpnearby.service.UserService;
 
 import java.util.List;
@@ -19,10 +23,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/user")
 public class UserController {
 
-	@Autowired
+
 	private UserService userService;
+	
+	private final S3UploadService s3UploadService;
+	
+
+	public UserController(S3UploadService s3UploadService) {
+		this.s3UploadService = s3UploadService;
+	}
+
 
 	// Create
+	
 	@PostMapping
 	public ResponseEntity<User> createUser(@RequestBody User user) {
 		User created = userService.createUser(user);
@@ -59,4 +72,8 @@ public class UserController {
 		return ResponseEntity.noContent().build();
 	}
 	
+	@PostMapping("/presign")
+	public PresignedUpload presign(@RequestBody FileMeta files) {
+		return  (s3UploadService.generatePresignedUrlProfilePicture(files.fileName(), files.contentType()));
+	}
 }

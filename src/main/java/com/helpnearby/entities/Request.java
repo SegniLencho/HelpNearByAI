@@ -52,6 +52,15 @@ public class Request {
      */
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+ 
+    @Column(
+        columnDefinition = "geography(Point,4326)",
+        insertable = false,
+        updatable = false
+    )
+    private String location;
+    
+    
 
     public Request() {
         this.id = UUID.randomUUID().toString();
@@ -177,5 +186,10 @@ public class Request {
 	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
+
+	public String getLocation() {
+		return location;
+	}
+
     
 }
