@@ -3,12 +3,10 @@ package com.helpnearby.controller;
 import com.helpnearby.dto.FileMeta;
 import com.helpnearby.dto.PresignedUpload;
 import com.helpnearby.entities.User;
-import com.helpnearby.service.RequestService;
 import com.helpnearby.service.S3UploadService;
 import com.helpnearby.service.UserService;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/user")
@@ -38,7 +37,7 @@ public class UserController {
 	// Create
 	
 	@PostMapping
-	public ResponseEntity<User> createUser(@RequestBody User user) {
+	public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
 		User created = userService.createUser(user);
 		return ResponseEntity.ok(created);
 	}
@@ -59,7 +58,7 @@ public class UserController {
 
 	// Update
 	@PutMapping("/{id}")
-	public ResponseEntity<User> updateUser(@PathVariable String id, @RequestBody User User) {
+	public ResponseEntity<User> updateUser(@PathVariable String id, @Valid @RequestBody User User) {
 		return userService.getByUserID(id).map(existing -> {
 			User.setId(id); // ensure ID remains the same
 			return ResponseEntity.ok(userService.updateUsers(User));

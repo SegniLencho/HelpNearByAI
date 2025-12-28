@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "users")
@@ -12,7 +13,11 @@ public class User {
 
 	@Id
 	private String id;
+	
+    @NotNull(message = "Name is required")
 	private String name;
+	
+    @NotNull(message = "Email is required")
 	private String email;
 	private String photoUrl;
 	private String phoneNumber;
@@ -93,7 +98,6 @@ public class User {
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
-
 	public String getProfile_picture_url() {
 		return profile_picture_url;
 	}
@@ -101,5 +105,4 @@ public class User {
 	public void setProfile_picture_url(String profile_picture_url) {
 		this.profile_picture_url = profile_picture_url;
 	}
-
 }
