@@ -29,8 +29,9 @@ public class UserController {
 	private final S3UploadService s3UploadService;
 	
 
-	public UserController(S3UploadService s3UploadService) {
+	public UserController(S3UploadService s3UploadService,UserService userService) {
 		this.s3UploadService = s3UploadService;
+		this.userService=userService;
 	}
 
 
