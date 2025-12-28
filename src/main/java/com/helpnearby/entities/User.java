@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotNull;
 @Table(name = "users")
 public class User {
 
-    @Id
+	@Id
 	private String id;
 	
     @NotNull(message = "Name is required")

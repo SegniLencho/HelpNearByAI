@@ -4,8 +4,10 @@ import com.helpnearby.entities.Request;
 import com.helpnearby.repository.RequestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Arrays;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,18 +19,13 @@ public class RequestService {
 
 	// Create
 	public Request createRequest(Request request) {
-
-		String[] sampleImages = { "https://picsum.photos/id/129/800/600", "https://picsum.photos/id/520/800/600",
-				"https://picsum.photos/id/367/800/600", "https://picsum.photos/id/19/800/600" };
-
-		request.setImageUrls(Arrays.asList(sampleImages));
-
 		return requestRepository.save(request);
 	}
 
 	// Read all
-	public List<Request> getAllRequests() {
-		return requestRepository.findAll();
+	public Page<Request> getAllRequests(int page, int size) {
+		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+		return requestRepository.findAll(pageable);
 	}
 
 	// Read by ID
@@ -50,4 +47,7 @@ public class RequestService {
 	public void deleteRequest(String id) {
 		requestRepository.deleteById(id);
 	}
+
+//	TODO Fetch top 5 request based on user zipcode + 5 miles
+
 }
