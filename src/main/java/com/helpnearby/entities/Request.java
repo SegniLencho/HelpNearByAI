@@ -5,9 +5,21 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 
 @Entity
-@Table(name = "requests")
+@Table(name = "requests", indexes = {
+    @Index(name = "idx_user_id", columnList = "user_id"),
+    @Index(name = "idx_created_at", columnList = "created_at"),
+    @Index(name = "idx_status", columnList = "status"),
+    @Index(name = "idx_status_created_at", columnList = "status, created_at")
+})
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Request {
 
     @Id
@@ -32,14 +44,13 @@ public class Request {
 
     // OPEN, INPROGRESS, CLOSED
     private String status;
-
-    @ElementCollection
-    @CollectionTable(
-        name = "request_images",
-        joinColumns = @JoinColumn(name = "request_id")
-    )
-    @Column(name = "image_urls")
-    private List<String> imageUrls;
+    
+    @JsonManagedReference
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "request_id")
+    @BatchSize(size = 20) // Load images in batches
+    private List<RequestImage> images;
+    
 
     // LOW, MEDIUM, URGENT
     private String urgency;
@@ -155,14 +166,6 @@ public class Request {
         this.status = status;
     }
 
-    public List<String> getImageUrls() {
-        return imageUrls;
-    }
-
-    public void setImageUrls(List<String> imageUrls) {
-        this.imageUrls = imageUrls;
-    }
-
     public String getUrgency() {
         return urgency;
     }
@@ -189,6 +192,18 @@ public class Request {
 
 	public String getLocation() {
 		return location;
+	}
+
+	public List<RequestImage> getImages() {
+		return images;
+	}
+
+	public void setImages(List<RequestImage> images) {
+		this.images = images;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
 	}
 
     

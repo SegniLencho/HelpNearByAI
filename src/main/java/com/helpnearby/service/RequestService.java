@@ -22,20 +22,34 @@ public class RequestService {
 		return requestRepository.save(request);
 	}
 
-	// Read all
+	// Read all - optimized to only fetch OPEN requests by default
 	public Page<Request> getAllRequests(int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-		return requestRepository.findAll(pageable);
+		return requestRepository.findOpenRequestsWithImages(pageable);
+	}
+	
+	// Read all with status filter
+	public Page<Request> getAllRequestsByStatus(String status, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+		if (status != null && !status.isEmpty()) {
+			return requestRepository.findByStatusWithImages(status, pageable);
+		}
+		return requestRepository.findAllWithImages(pageable);
 	}
 
-	// Read by ID
+	// Read by ID - cached
 	public Optional<Request> getRequestById(String id) {
-		return requestRepository.findById(id);
+		return requestRepository.findByIdWithImages(id);
 	}
 
-	// Read by User
+	// Read by User - optimized query
 	public List<Request> getRequestsByUserId(String userId) {
-		return requestRepository.findByUserId(userId);
+		return requestRepository.findByUserIdWithImages(userId);
+	}
+	
+	// Read by User and Status
+	public List<Request> getRequestsByUserIdAndStatus(String userId, String status) {
+		return requestRepository.findByUserIdAndStatus(userId, status);
 	}
 
 	// Update

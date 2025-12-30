@@ -9,7 +9,6 @@ import com.helpnearby.service.S3UploadService;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,10 +47,14 @@ public class RequestsController {
 //	}
 
 	@GetMapping
-	public ResponseEntity<Page<Request>> getAllRequests(@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "5") int size) {
+	public ResponseEntity<Page<Request>> getAllRequests(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "5") int size,
+			@RequestParam(required = false) String status) {
+		if (status != null && !status.isEmpty()) {
+			return ResponseEntity.ok(requestService.getAllRequestsByStatus(status, page, size));
+		}
 		return ResponseEntity.ok(requestService.getAllRequests(page, size));
-
 	}
 
 	// Read by ID
