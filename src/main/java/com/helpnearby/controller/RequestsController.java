@@ -45,18 +45,15 @@ public class RequestsController {
 //	public ResponseEntity<List<Request>> getAllRequests() {
 //		return ResponseEntity.ok(requestService.getAllRequests());
 //	}
+	
+    @GetMapping
+    public ResponseEntity<Page<Request>> getAllRequests(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+		return ResponseEntity.ok(requestService.getAllRequests(page,size));
 
-	@GetMapping
-	public ResponseEntity<Page<Request>> getAllRequests(
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "5") int size,
-			@RequestParam(required = false) String status) {
-		if (status != null && !status.isEmpty()) {
-			return ResponseEntity.ok(requestService.getAllRequestsByStatus(status, page, size));
-		}
-		return ResponseEntity.ok(requestService.getAllRequests(page, size));
-	}
-
+    }
+    
 	// Read by ID
 	@GetMapping("/{id}")
 	public ResponseEntity<Request> getRequestById(@PathVariable String id) {

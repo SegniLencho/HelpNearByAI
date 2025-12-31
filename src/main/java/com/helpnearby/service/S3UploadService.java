@@ -50,5 +50,19 @@ public class S3UploadService {
 
 		return new PresignedUpload(presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
 	}
-}
 
+	public PresignedUpload generatePresignedUrlProfilePicture(String fileName, String contentType) {
+
+		String key = "profile_picture/" + UUID.randomUUID() + "/" + fileName;
+
+		PutObjectRequest objectRequest = PutObjectRequest.builder().bucket(bucket).key(key).contentType(contentType)
+				.build();
+
+		PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+				.signatureDuration(Duration.ofMinutes(5)).putObjectRequest(objectRequest).build();
+
+		PresignedPutObjectRequest presigned = presigner.presignPutObject(presignRequest);
+
+		return new PresignedUpload(presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
+	}
+}
