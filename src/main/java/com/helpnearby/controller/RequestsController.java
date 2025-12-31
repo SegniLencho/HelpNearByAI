@@ -2,6 +2,7 @@ package com.helpnearby.controller;
 
 import com.helpnearby.dto.FileMeta;
 import com.helpnearby.dto.PresignedUpload;
+import com.helpnearby.dto.RequestListDTO;
 import com.helpnearby.entities.Request;
 import com.helpnearby.service.RequestService;
 import com.helpnearby.service.S3UploadService;
@@ -47,7 +48,7 @@ public class RequestsController {
 //	}
 	
     @GetMapping
-    public ResponseEntity<Page<Request>> getAllRequests(
+    public ResponseEntity<Page<RequestListDTO>> getAllRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
 		return ResponseEntity.ok(requestService.getAllRequests(page,size));

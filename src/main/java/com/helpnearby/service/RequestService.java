@@ -1,5 +1,6 @@
 package com.helpnearby.service;
 
+import com.helpnearby.dto.RequestListDTO;
 import com.helpnearby.entities.Request;
 import com.helpnearby.repository.RequestRepository;
 import org.springframework.stereotype.Service;
@@ -23,10 +24,17 @@ public class RequestService {
 	}
 
 	// Read all - optimized to only fetch OPEN requests by default
-	public Page<Request> getAllRequests(int page, int size) {
+//	public Page<Request> getAllRequests(int page, int size) {
+//		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+//		return requestRepository.findOpenRequestsWithImages(pageable);
+//	}
+	
+	
+	public Page<RequestListDTO> getAllRequests(int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-		return requestRepository.findOpenRequestsWithImages(pageable);
+		return requestRepository.findOpenRequestsWithPrimaryImage(pageable);
 	}
+	
 	
 	// Read all with status filter
 	public Page<Request> getAllRequestsByStatus(String status, int page, int size) {
