@@ -50,7 +50,7 @@ public class RequestsController {
     @GetMapping
     public ResponseEntity<Page<RequestListDTO>> getAllRequests(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "10") int size) {
 		return ResponseEntity.ok(requestService.getAllRequests(page,size));
 
     }

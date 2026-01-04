@@ -74,6 +74,10 @@ public interface RequestRepository extends JpaRepository<Request, String> {
 		""")
 	Page<RequestListDTO> findOpenRequestsWithPrimaryImage(Pageable pageable);
 	
+	// Count open requests for pagination
+	@Query("SELECT COUNT(r) FROM Request r WHERE r.status = 'OPEN'")
+	long countByStatus(String status);
+	
 	
 //	String id, String title, String description,String category, Double reward, String urgency,String latitude,String latitude, Instant createdAt,
 //	String images) {
