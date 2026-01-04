@@ -71,5 +71,9 @@ public class RequestService {
 	}
 
 //	TODO Fetch top 5 request based on user zipcode + 5 miles
+    public Page<RequestListDTO> searchRequests(double latitude, double longitude, double radiusMiles, Pageable pageable) {
+        double radiusMeters = radiusMiles * 1609.34; // Convert miles to meters
+        return requestRepository.findOpenRequestsWithinRadius(latitude, longitude, radiusMeters, pageable);
+    }
 
 }

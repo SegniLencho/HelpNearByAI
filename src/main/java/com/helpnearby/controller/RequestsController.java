@@ -10,6 +10,7 @@ import com.helpnearby.service.S3UploadService;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,15 +47,14 @@ public class RequestsController {
 //	public ResponseEntity<List<Request>> getAllRequests() {
 //		return ResponseEntity.ok(requestService.getAllRequests());
 //	}
-	
-    @GetMapping
-    public ResponseEntity<Page<RequestListDTO>> getAllRequests(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
-		return ResponseEntity.ok(requestService.getAllRequests(page,size));
 
-    }
-    
+	@GetMapping
+	public ResponseEntity<Page<RequestListDTO>> getAllRequests(@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "5") int size) {
+		return ResponseEntity.ok(requestService.getAllRequests(page, size));
+
+	}
+
 	// Read by ID
 	@GetMapping("/{id}")
 	public ResponseEntity<Request> getRequestById(@PathVariable String id) {
@@ -86,5 +86,12 @@ public class RequestsController {
 	@PostMapping("/presign")
 	public List<PresignedUpload> presign(@RequestBody List<FileMeta> files) {
 		return files.stream().map(f -> s3UploadService.generatePresignedUrl(f.fileName(), f.contentType())).toList();
+	}
+
+	@GetMapping("/search")
+	public Page<RequestListDTO> searchRequests(@RequestParam double latitude, @RequestParam double longitude,
+			@RequestParam(defaultValue = "10") double radiusMiles, @RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "20") int size) {
+		return requestService.searchRequests(latitude, longitude, radiusMiles, PageRequest.of(page, size));
 	}
 }

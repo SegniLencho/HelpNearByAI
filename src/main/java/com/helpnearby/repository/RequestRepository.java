@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.helpnearby.dto.RequestListDTO;
@@ -52,31 +53,52 @@ public interface RequestRepository extends JpaRepository<Request, String> {
 	// Filter by status and user
 	@Query("SELECT r FROM Request r WHERE r.userId = :userId AND r.status = :status ORDER BY r.createdAt DESC")
 	List<Request> findByUserIdAndStatus(String userId, String status);
-	
+
 	@Query("""
-		    SELECT new com.helpnearby.dto.RequestListDTO(
-		        r.id,
-		        r.title,
-		        r.description,
-		        r.category,
-		        r.reward,
-		        r.urgency,
-		        r.latitude,
-		        r.longitude,
-		        r.createdAt,
-		        ri.url
-		    )
-		    FROM Request r
-		    LEFT JOIN r.images ri
-		        ON ri.primaryImage = true
-		    WHERE r.status = 'OPEN'
-		    ORDER BY r.createdAt DESC
-		""")
+			    SELECT new com.helpnearby.dto.RequestListDTO(
+			        r.id,
+			        r.title,
+			        r.description,
+			        r.category,
+			        r.reward,
+			        r.urgency,
+			        r.latitude,
+			        r.longitude,
+			        r.createdAt,
+			        ri.url
+			    )
+			    FROM Request r
+			    LEFT JOIN r.images ri
+			        ON ri.primaryImage = true
+			    WHERE r.status = 'OPEN'
+			    ORDER BY r.createdAt DESC
+			""")
 	Page<RequestListDTO> findOpenRequestsWithPrimaryImage(Pageable pageable);
-	
-	
-//	String id, String title, String description,String category, Double reward, String urgency,String latitude,String latitude, Instant createdAt,
-//	String images) {
+
+	@Query(value = """
+			SELECT r.id, r.title,r.description,r.category, r.reward, r.urgency, r.latitude, r.longitude,r.created_at,
+			       ri.url AS image_url
+			FROM requests r
+			LEFT JOIN request_images ri
+			    ON ri.request_id = r.id AND ri.is_primary = true
+			WHERE r.status = 'OPEN'
+			  AND ST_DWithin(
+			        r.location,
+			        ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,
+			        :radiusMeters
+			  )
+			ORDER BY r.created_at DESC
+			""", countQuery = """
+			SELECT COUNT(*)
+			FROM requests r
+			WHERE r.status = 'OPEN'
+			  AND ST_DWithin(
+			        r.location,
+			        ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,
+			        :radiusMeters
+			  )
+			""", nativeQuery = true)
+	Page<RequestListDTO> findOpenRequestsWithinRadius(@Param("latitude") double latitude,
+			@Param("longitude") double longitude, @Param("radiusMeters") double radiusMeters, Pageable pageable);
+
 }
-
-
