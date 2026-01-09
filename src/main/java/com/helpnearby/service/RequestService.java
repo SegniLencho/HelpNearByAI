@@ -113,10 +113,14 @@ public class RequestService {
 			existing.setLatitude(requestUpdate.getLatitude());
 			existing.setLongitude(requestUpdate.getLongitude());
 			
-			// Handle images - update if provided (empty array means clear images)
+			// Handle images - only update if non-empty array is provided
 			// IMPORTANT: With orphanRemoval=true, we must modify the existing collection,
 			// not replace it with a new reference
-			if (requestUpdate.getImages() != null) {
+			// Logic:
+			// - If images is null: keep existing images (don't update)
+			// - If images is empty array []: keep existing images (don't clear)
+			// - If images has items: replace with new images
+			if (requestUpdate.getImages() != null && !requestUpdate.getImages().isEmpty()) {
 				// Initialize collection if null
 				if (existing.getImages() == null) {
 					existing.setImages(new java.util.ArrayList<>());
@@ -126,16 +130,14 @@ public class RequestService {
 				existing.getImages().clear();
 				
 				// Add new images to the existing collection (don't replace the collection reference)
-				if (!requestUpdate.getImages().isEmpty()) {
-					requestUpdate.getImages().forEach(img -> {
-						if (img != null) {
-							img.setRequest(existing);
-							existing.getImages().add(img);
-						}
-					});
-				}
-				// If empty list, we've already cleared, so nothing to add
+				requestUpdate.getImages().forEach(img -> {
+					if (img != null) {
+						img.setRequest(existing);
+						existing.getImages().add(img);
+					}
+				});
 			}
+			// If images is null or empty array, do nothing - preserve existing images
 			
 			// updatedAt will be set automatically by @PreUpdate
 			// createdAt is preserved because it's marked as updatable = false
