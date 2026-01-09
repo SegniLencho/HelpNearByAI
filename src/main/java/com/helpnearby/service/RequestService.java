@@ -45,9 +45,13 @@ public class RequestService {
 		return requestRepository.findAllWithImages(pageable);
 	}
 
-	// Read by ID - cached
+	// Read by ID - try standard findById first, then with images
 	public Optional<Request> getRequestById(String id) {
-		return requestRepository.findByIdWithImages(id);
+		Optional<Request> request = requestRepository.findById(id);
+		if (request.isEmpty()) {
+			request = requestRepository.findByIdWithImages(id);
+		}
+		return request;
 	}
 
 	// Read by User - optimized query
@@ -61,8 +65,88 @@ public class RequestService {
 	}
 
 	// Update
-	public Request updateRequest(Request request) {
-		return requestRepository.save(request);
+	public Request updateRequest(String id, Request requestUpdate) {
+		System.out.println("Attempting to update request with id: " + id);
+		
+		// Try to find the request - use standard findById first as it's more reliable
+		Optional<Request> existingOpt = requestRepository.findById(id);
+		System.out.println("Standard findById result: " + (existingOpt.isPresent() ? "FOUND" : "NOT FOUND"));
+		
+		// If not found with standard method, try with EntityGraph
+		if (existingOpt.isEmpty()) {
+			existingOpt = requestRepository.findByIdWithImages(id);
+			System.out.println("EntityGraph findById result: " + (existingOpt.isPresent() ? "FOUND" : "NOT FOUND"));
+		}
+		
+		return existingOpt.map(existing -> {
+			System.out.println("Request found, proceeding with update...");
+			// Initialize images collection if null to avoid NPE
+			if (existing.getImages() == null) {
+				existing.setImages(new java.util.ArrayList<>());
+			}
+			// Security: userId should not be changed via update
+			// If userId is provided and different, ignore it (or throw exception)
+			if (requestUpdate.getUserId() != null && !requestUpdate.getUserId().equals(existing.getUserId())) {
+				throw new IllegalArgumentException("Cannot change userId of a request");
+			}
+			
+			// Update only the fields that are provided (non-null)
+			if (requestUpdate.getTitle() != null) {
+				existing.setTitle(requestUpdate.getTitle());
+			}
+			if (requestUpdate.getDescription() != null) {
+				existing.setDescription(requestUpdate.getDescription());
+			}
+			if (requestUpdate.getCategory() != null) {
+				existing.setCategory(requestUpdate.getCategory());
+			}
+			if (requestUpdate.getReward() != null) {
+				existing.setReward(requestUpdate.getReward());
+			}
+			if (requestUpdate.getStatus() != null) {
+				existing.setStatus(requestUpdate.getStatus());
+			}
+			if (requestUpdate.getUrgency() != null) {
+				existing.setUrgency(requestUpdate.getUrgency());
+			}
+			// Update coordinates (always update, even if 0.0)
+			existing.setLatitude(requestUpdate.getLatitude());
+			existing.setLongitude(requestUpdate.getLongitude());
+			
+			// Handle images - update if provided (empty array means clear images)
+			// IMPORTANT: With orphanRemoval=true, we must modify the existing collection,
+			// not replace it with a new reference
+			if (requestUpdate.getImages() != null) {
+				// Initialize collection if null
+				if (existing.getImages() == null) {
+					existing.setImages(new java.util.ArrayList<>());
+				}
+				
+				// Clear existing images (modify existing collection, don't replace)
+				existing.getImages().clear();
+				
+				// Add new images to the existing collection (don't replace the collection reference)
+				if (!requestUpdate.getImages().isEmpty()) {
+					requestUpdate.getImages().forEach(img -> {
+						if (img != null) {
+							img.setRequest(existing);
+							existing.getImages().add(img);
+						}
+					});
+				}
+				// If empty list, we've already cleared, so nothing to add
+			}
+			
+			// updatedAt will be set automatically by @PreUpdate
+			// createdAt is preserved because it's marked as updatable = false
+			System.out.println("Saving updated request...");
+			Request saved = requestRepository.save(existing);
+			System.out.println("Request saved successfully with id: " + saved.getId());
+			return saved;
+		}).orElseThrow(() -> {
+			System.err.println("Request not found with id: " + id);
+			return new RuntimeException("Request not found with id: " + id);
+		});
 	}
 
 	// Delete

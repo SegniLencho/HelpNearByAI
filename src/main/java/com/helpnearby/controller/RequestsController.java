@@ -70,10 +70,25 @@ public class RequestsController {
 	// Update
 	@PutMapping("/{id}")
 	public ResponseEntity<Request> updateRequest(@PathVariable String id, @RequestBody Request request) {
-		return requestService.getRequestById(id).map(existing -> {
-			request.setId(id); // ensure ID remains the same
-			return ResponseEntity.ok(requestService.updateRequest(request));
-		}).orElse(ResponseEntity.notFound().build());
+		try {
+			// First check if request exists
+			if (!requestService.getRequestById(id).isPresent()) {
+				System.err.println("Request not found with id: " + id);
+				return ResponseEntity.notFound().build();
+			}
+			
+			Request updated = requestService.updateRequest(id, request);
+			return ResponseEntity.ok(updated);
+		} catch (IllegalArgumentException e) {
+			// Return 400 for validation errors
+			System.err.println("Validation error: " + e.getMessage());
+			return ResponseEntity.badRequest().build();
+		} catch (Exception e) {
+			// Log the full error for debugging
+			System.err.println("Error updating request with id " + id + ": " + e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.internalServerError().build();
+		}
 	}
 
 	// Delete
