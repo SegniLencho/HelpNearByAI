@@ -1,6 +1,8 @@
 package com.helpnearby.service;
 
+import com.helpnearby.dto.RequestImageResponseDto;
 import com.helpnearby.dto.RequestListDTO;
+import com.helpnearby.dto.RequestResponseDto;
 import com.helpnearby.entities.Request;
 import com.helpnearby.repository.RequestRepository;
 import org.springframework.stereotype.Service;
@@ -46,12 +48,13 @@ public class RequestService {
 	}
 
 	// Read by ID - try standard findById first, then with images
-	public Optional<Request> getRequestById(String id) {
+	public RequestResponseDto getRequestById(String id) {
+		RequestResponseDto requestResponseDto=new RequestResponseDto();
 		Optional<Request> request = requestRepository.findById(id);
-		if (request.isEmpty()) {
-			request = requestRepository.findByIdWithImages(id);
+		if(!request.isEmpty()) {
+			requestResponseDto = convertReqeustToDto(request.get());
 		}
-		return request;
+		return requestResponseDto;
 	}
 
 	// Read by User - optimized query
@@ -155,5 +158,44 @@ public class RequestService {
 	}
 
 //	TODO Fetch top 5 request based on user zipcode + 5 miles
+	public RequestResponseDto convertReqeustToDto(Request request) {
+		RequestResponseDto dto = new RequestResponseDto();
+
+	    dto.setId(request.getId());
+	    dto.setUserId(request.getUserId());
+	    dto.setTitle(request.getTitle());
+	    dto.setDescription(request.getDescription());
+	    dto.setCategory(request.getCategory());
+	    dto.setReward(request.getReward());
+
+	    dto.setLatitude(request.getLatitude());
+	    dto.setLongitude(request.getLongitude());
+
+	    dto.setStatus(request.getStatus());
+	    dto.setUrgency(request.getUrgency());
+
+	    dto.setCreatedAt(request.getCreatedAt());
+	    dto.setUpdatedAt(request.getUpdatedAt());
+
+	    dto.setLocation(request.getLocation() != null
+	            ? request.getLocation().toString()
+	            : null);
+
+	    dto.setImages(
+	        request.getImages().stream()
+	            .map(img -> {
+	                RequestImageResponseDto imageDto = new RequestImageResponseDto();
+	                imageDto.setId(img.getId());
+	                imageDto.setUrl(img.getUrl());
+	                imageDto.setPrimaryImage(img.isPrimaryImage());
+	                imageDto.setS3Key(img.getS3Key());
+	                return imageDto;
+	            })
+	            .toList()
+	    );
+
+	    return dto;
+	}
+		
 
 }

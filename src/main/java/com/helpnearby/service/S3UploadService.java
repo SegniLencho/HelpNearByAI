@@ -48,7 +48,7 @@ public class S3UploadService {
 
 		PresignedPutObjectRequest presigned = presigner.presignPutObject(presignRequest);
 
-		return new PresignedUpload(presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
+		return new PresignedUpload(key,presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
 	}
 
 	public PresignedUpload generatePresignedUrlProfilePicture(String fileName, String contentType) {
@@ -63,6 +63,6 @@ public class S3UploadService {
 
 		PresignedPutObjectRequest presigned = presigner.presignPutObject(presignRequest);
 
-		return new PresignedUpload(presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
+		return new PresignedUpload(key,presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
 	}
 }
