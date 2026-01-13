@@ -12,6 +12,8 @@ import jakarta.annotation.PostConstruct;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -19,7 +21,6 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 
 @Service
 public class S3UploadService {
-
 	@Value(value = "${aws.s3.accessKeyId}")
 	private String accessKeyId;
 
@@ -27,12 +28,17 @@ public class S3UploadService {
 	private String accessSecret;
 
 	private S3Presigner presigner;
+	private S3Client s3Client; // Add S3 client for delete
 	private final String bucket = "helpnearby";
 
 	@PostConstruct
 	public void init() {
 		AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, accessSecret);
+
 		this.presigner = S3Presigner.builder().region(Region.US_EAST_2)
+				.credentialsProvider(StaticCredentialsProvider.create(credentials)).build();
+
+		this.s3Client = S3Client.builder().region(Region.US_EAST_2)
 				.credentialsProvider(StaticCredentialsProvider.create(credentials)).build();
 	}
 
@@ -48,7 +54,7 @@ public class S3UploadService {
 
 		PresignedPutObjectRequest presigned = presigner.presignPutObject(presignRequest);
 
-		return new PresignedUpload(key,presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
+		return new PresignedUpload(key, presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
 	}
 
 	public PresignedUpload generatePresignedUrlProfilePicture(String fileName, String contentType) {
@@ -63,6 +69,13 @@ public class S3UploadService {
 
 		PresignedPutObjectRequest presigned = presigner.presignPutObject(presignRequest);
 
-		return new PresignedUpload(key,presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
+		return new PresignedUpload(key, presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
 	}
+
+	public void deleteObject(String s3Key) {
+		DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder().bucket(bucket).key(s3Key).build();
+
+		s3Client.deleteObject(deleteRequest);
+	}
+
 }

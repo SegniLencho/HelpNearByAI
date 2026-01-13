@@ -6,6 +6,7 @@ import com.helpnearby.dto.PresignedUpload;
 import com.helpnearby.dto.RequestDto;
 import com.helpnearby.dto.RequestListDTO;
 import com.helpnearby.dto.RequestResponseDto;
+import com.helpnearby.dto.UpdateRequestDto;
 import com.helpnearby.entities.Request;
 import com.helpnearby.service.RequestService;
 import com.helpnearby.service.S3UploadService;
@@ -45,7 +46,11 @@ public class RequestsController {
 		Request created = requestService.createRequest(userId,request);
 		return ResponseEntity.ok(created);
 	}
-
+    @PutMapping
+	public ResponseEntity<Request> updateRequest(@RequestBody UpdateRequestDto request) {
+		Request created = requestService.updateRequest(request);
+		return ResponseEntity.ok(created);
+	}
 
 	@GetMapping
 	public ResponseEntity<Page<RequestListDTO>> getAllRequests(@RequestParam(defaultValue = "0") int page,
@@ -70,30 +75,6 @@ public class RequestsController {
 	@GetMapping("/user/{userId}")
 	public ResponseEntity<List<Request>> getRequestsByUser(@PathVariable String userId) {
 		return ResponseEntity.ok(requestService.getRequestsByUserId(userId));
-	}
-
-	// Update
-	@PutMapping("/{id}")
-	public ResponseEntity<Request> updateRequest(@PathVariable String id, @RequestBody Request request) {
-		try {
-			// First check if request exists
-			if (Objects.isNull(requestService.getRequestById(id))) {
-				System.err.println("Request not found with id: " + id);
-				return ResponseEntity.notFound().build();
-			}
-
-			Request updated = requestService.updateRequest(id, request);
-			return ResponseEntity.ok(updated);
-		} catch (IllegalArgumentException e) {
-			// Return 400 for validation errors
-			System.err.println("Validation error: " + e.getMessage());
-			return ResponseEntity.badRequest().build();
-		} catch (Exception e) {
-			// Log the full error for debugging
-			System.err.println("Error updating request with id " + id + ": " + e.getMessage());
-			e.printStackTrace();
-			return ResponseEntity.internalServerError().build();
-		}
 	}
 
 	// Delete
