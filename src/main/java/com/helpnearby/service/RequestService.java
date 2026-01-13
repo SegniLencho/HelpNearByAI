@@ -1,10 +1,13 @@
 package com.helpnearby.service;
 
+import com.helpnearby.dto.CreateRequestDto;
 import com.helpnearby.dto.RequestImageResponseDto;
 import com.helpnearby.dto.RequestListDTO;
 import com.helpnearby.dto.RequestResponseDto;
 import com.helpnearby.entities.Request;
 import com.helpnearby.repository.RequestRepository;
+import com.helpnearby.util.RequestCreateMapper;
+
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,16 +24,12 @@ public class RequestService {
 	private RequestRepository requestRepository;
 
 	// Create
-	public Request createRequest(Request request) {
+	public Request createRequest(String userId,CreateRequestDto requestDto) {
+        Request request = RequestCreateMapper.toEntity(userId,requestDto);
+        System.out.println("Create Request payload "+requestDto.toString() );
 		return requestRepository.save(request);
 	}
 
-	// Read all - optimized to only fetch OPEN requests by default
-//	public Page<Request> getAllRequests(int page, int size) {
-//		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-//		return requestRepository.findOpenRequestsWithImages(pageable);
-//	}
-	
 	
 	public Page<RequestListDTO> getAllRequests(int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
