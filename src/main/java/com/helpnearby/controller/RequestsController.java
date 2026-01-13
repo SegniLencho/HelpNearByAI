@@ -40,17 +40,12 @@ public class RequestsController {
 	}
 
 	// Create
-	@PostMapping
+    @PostMapping("/{userId}")
 	public ResponseEntity<Request> createRequest(@PathVariable String userId, @RequestBody CreateRequestDto request) {
 		Request created = requestService.createRequest(userId,request);
 		return ResponseEntity.ok(created);
 	}
 
-	// Replaced with only top 5
-//	@GetMapping
-//	public ResponseEntity<List<Request>> getAllRequests() {
-//		return ResponseEntity.ok(requestService.getAllRequests());
-//	}
 
 	@GetMapping
 	public ResponseEntity<Page<RequestListDTO>> getAllRequests(@RequestParam(defaultValue = "0") int page,
