@@ -13,12 +13,10 @@ import com.helpnearby.repository.RequestRepository;
 import com.helpnearby.util.RequestCreateMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.transaction.annotation.Propagation;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
@@ -27,17 +25,15 @@ import java.util.stream.Collectors;
 
 @Service
 public class RequestService {
-	
-		
+
 	@PersistenceContext
 	private EntityManager entityManager;
-	
+
 	private S3UploadService s3UploadService;
 
 	private RequestImageRepository requestImageRepository;
-	
-	private RequestRepository requestRepository;
 
+	private RequestRepository requestRepository;
 
 	RequestService(RequestRepository requestRepository, RequestImageRepository requestImageRepository,
 			S3UploadService s3UploadService) {
@@ -87,7 +83,6 @@ public class RequestService {
 		return requestRepository.findByUserIdAndStatus(userId, status);
 	}
 
-
 	// Update
 	@Transactional
 	public Request updateRequest(UpdateRequestDto requestUpdate) {
@@ -128,8 +123,15 @@ public class RequestService {
 	}
 
 	// Delete
-	public void deleteRequest(String id) {
-		requestRepository.deleteById(id);
+	public void deleteRequest(String requestId) {
+		// 1. Delete removed images
+
+		List<RequestImage> imagesToDelete = requestImageRepository.getAllImageByRequestId(requestId);
+		if (!imagesToDelete.isEmpty()) {
+			imagesToDelete.forEach(img -> s3UploadService.deleteObject(img.getS3Key()));
+			requestImageRepository.deleteByRequestId(requestId);
+		}
+		requestRepository.deleteById(requestId);
 	}
 
 //	TODO Fetch top 5 request based on user zipcode + 5 miles
