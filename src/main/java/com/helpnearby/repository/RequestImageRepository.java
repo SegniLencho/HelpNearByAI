@@ -8,10 +8,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.helpnearby.entities.RequestImage;
-import java.util.UUID;
 
 @Repository
-public interface RequestImageRepository extends JpaRepository<RequestImage, UUID> {
+public interface RequestImageRepository extends JpaRepository<RequestImage, String> {
 	
 	// Delete images by request ID using native query to avoid FK constraint issues
 	@Modifying

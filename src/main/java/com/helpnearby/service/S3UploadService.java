@@ -27,11 +27,9 @@ public class S3UploadService {
 
 	@Value(value = "${aws.s3.secretAccessKey}")
 	private String accessSecret;
-
 	private S3Presigner presigner;
-	private S3Client s3Client; // Add S3 client for delete
 	private final String bucket = "helpnearby";
-	
+
 	@Autowired
 	private S3Client s3Client;
 
