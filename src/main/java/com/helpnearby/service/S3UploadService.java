@@ -18,6 +18,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class S3UploadService {
@@ -30,6 +31,9 @@ public class S3UploadService {
 	private S3Presigner presigner;
 	private S3Client s3Client; // Add S3 client for delete
 	private final String bucket = "helpnearby";
+	
+	@Autowired
+	private S3Client s3Client;
 
 	@PostConstruct
 	public void init() {

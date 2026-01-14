@@ -17,6 +17,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,6 +29,15 @@ import java.util.stream.Collectors;
 public class RequestService {
 
 	private RequestRepository requestRepository;
+	
+	@Autowired
+	private RequestImageRepository requestImageRepository;
+	
+	@PersistenceContext
+	private EntityManager entityManager;
+	
+	@Autowired
+	private S3UploadService s3UploadService;
 
 	private RequestImageRepository requestImageRepository;
 
@@ -76,6 +89,15 @@ public class RequestService {
 	// Read by User and Status
 	public List<Request> getRequestsByUserIdAndStatus(String userId, String status) {
 		return requestRepository.findByUserIdAndStatus(userId, status);
+	}
+
+	// Delete images in a separate transaction to avoid FK constraint issues
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void deleteRequestImages(String requestId) {
+		// Use EntityManager native query directly for more control
+		entityManager.createNativeQuery("DELETE FROM request_images WHERE request_id = :requestId")
+			.setParameter("requestId", requestId)
+			.executeUpdate();
 	}
 
 	// Update
