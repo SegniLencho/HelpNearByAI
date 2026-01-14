@@ -1,6 +1,7 @@
 package com.helpnearby.service;
 
 import com.helpnearby.dto.CreateRequestDto;
+import com.helpnearby.dto.RequestFormMetadata;
 import com.helpnearby.dto.RequestImageResponseDto;
 import com.helpnearby.dto.RequestListDTO;
 import com.helpnearby.dto.RequestResponseDto;
@@ -18,6 +19,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -154,6 +158,106 @@ public class RequestService {
 		}).toList());
 
 		return dto;
+	}
+	
+	/**
+	 * Get form metadata for request creation - helps frontend display proper placeholders and validation
+	 */
+	public RequestFormMetadata getRequestFormMetadata() {
+		Map<String, RequestFormMetadata.FieldMetadata> fields = new HashMap<>();
+		
+		// Title field
+		fields.put("title", new RequestFormMetadata.FieldMetadata(
+			"Enter a clear title for your request", 
+			"text", 
+			true, 
+			255, 
+			"required|min:5|max:255", 
+			"Be specific about what help you need"
+		));
+		
+		// Description field
+		fields.put("description", new RequestFormMetadata.FieldMetadata(
+			"Describe your request in detail", 
+			"textarea", 
+			true, 
+			2000, 
+			"required|min:10|max:2000", 
+			"Include important details like location, timing, and specific requirements"
+		));
+		
+		// Category field
+		fields.put("category", new RequestFormMetadata.FieldMetadata(
+			"Select a category", 
+			"select", 
+			true, 
+			null, 
+			"required", 
+			"Choose the category that best fits your request"
+		));
+		
+		// Reward field
+		fields.put("reward", new RequestFormMetadata.FieldMetadata(
+			"Enter reward amount (optional)", 
+			"number", 
+			false, 
+			null, 
+			"numeric|min:0", 
+			"Offering a reward can help attract more helpers"
+		));
+		
+		// Urgency field
+		fields.put("urgency", new RequestFormMetadata.FieldMetadata(
+			"Select urgency level", 
+			"select", 
+			true, 
+			null, 
+			"required", 
+			"How urgent is your request?"
+		));
+		
+		// Location fields
+		fields.put("latitude", new RequestFormMetadata.FieldMetadata(
+			"Latitude", 
+			"number", 
+			true, 
+			null, 
+			"required|numeric|between:-90,90", 
+			"Your location latitude"
+		));
+		
+		fields.put("longitude", new RequestFormMetadata.FieldMetadata(
+			"Longitude", 
+			"number", 
+			true, 
+			null, 
+			"required|numeric|between:-180,180", 
+			"Your location longitude"
+		));
+		
+		// Categories
+		List<String> categories = Arrays.asList(
+			"Home & Garden", 
+			"Transportation", 
+			"Technology", 
+			"Moving & Delivery", 
+			"Pet Care", 
+			"Childcare", 
+			"Tutoring & Education", 
+			"Health & Wellness", 
+			"Events & Entertainment", 
+			"Professional Services", 
+			"Emergency", 
+			"Other"
+		);
+		
+		// Urgency levels
+		List<String> urgencyLevels = Arrays.asList("LOW", "MEDIUM", "URGENT");
+		
+		// Status options (for reference, usually set automatically)
+		List<String> statusOptions = Arrays.asList("OPEN", "INPROGRESS", "CLOSED");
+		
+		return new RequestFormMetadata(fields, categories, urgencyLevels, statusOptions);
 	}
 
 }

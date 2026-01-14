@@ -10,7 +10,6 @@ public class UpdateRequestDto {
 	private Double reward;
 	private String urgency;
 	private String status;
-	private List<UpdateRequestImageDto> existingImages;
 	private List<UpdateRequestImageDto> removedImages;
 	private List<UpdateRequestImageDto> newImages;
 
@@ -52,14 +51,6 @@ public class UpdateRequestDto {
 
 	public void setUrgency(String urgency) {
 		this.urgency = urgency;
-	}
-
-	public List<UpdateRequestImageDto> getExistingImages() {
-		return existingImages;
-	}
-
-	public void setExistingImages(List<UpdateRequestImageDto> existingImages) {
-		this.existingImages = existingImages;
 	}
 
 	public List<UpdateRequestImageDto> getRemovedImages() {
