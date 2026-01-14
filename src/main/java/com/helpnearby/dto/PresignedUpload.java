@@ -1,4 +1,4 @@
 package com.helpnearby.dto;
 
-public record PresignedUpload(String uploadUrl, String fileUrl) {
+public record PresignedUpload(String s3Key,String uploadUrl, String fileUrl) {
 }

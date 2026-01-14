@@ -28,7 +28,10 @@ public class RequestImage {
 
     @Column(name = "is_primary")
     private boolean primaryImage;
-  
+    
+    @Column(name = "s3_key")
+    private String s3Key;
+    
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_id", nullable = false)
@@ -66,4 +69,13 @@ public class RequestImage {
     public void setRequest(Request request) {
         this.request = request;
     }
+
+	public String getS3Key() {
+		return s3Key;
+	}
+
+	public void setS3Key(String s3Key) {
+		this.s3Key = s3Key;
+	}
+    
 }
