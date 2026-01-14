@@ -1,6 +1,7 @@
 package com.helpnearby.service;
 
 import com.helpnearby.dto.CreateRequestDto;
+import com.helpnearby.dto.PagedResponse;
 import com.helpnearby.dto.RequestImageResponseDto;
 import com.helpnearby.dto.RequestListDTO;
 import com.helpnearby.dto.RequestResponseDto;
@@ -13,31 +14,30 @@ import com.helpnearby.repository.RequestRepository;
 import com.helpnearby.util.RequestCreateMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.transaction.annotation.Propagation;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 
 @Service
 public class RequestService {
-	
-		
+
 	@PersistenceContext
 	private EntityManager entityManager;
-	
+
 	private S3UploadService s3UploadService;
 
 	private RequestImageRepository requestImageRepository;
-	
-	private RequestRepository requestRepository;
 
+	private RequestRepository requestRepository;
 
 	RequestService(RequestRepository requestRepository, RequestImageRepository requestImageRepository,
 			S3UploadService s3UploadService) {
@@ -47,15 +47,24 @@ public class RequestService {
 	}
 
 	// Create
+	@Caching(evict = { @CacheEvict(value = "openRequests", allEntries = true),
+			@CacheEvict(value = "userRequests", key = "#request.userId") })
 	public Request createRequest(String userId, CreateRequestDto requestDto) {
 		Request request = RequestCreateMapper.toEntity(userId, requestDto);
 		System.out.println("Create Request payload " + requestDto.toString());
 		return requestRepository.save(request);
 	}
 
-	public Page<RequestListDTO> getAllRequests(int page, int size) {
+	@Cacheable(value = "openRequests", // cache name in Redis
+			key = "{#page, #size}" // unique key per page + size
+	)
+	public PagedResponse<RequestListDTO> getAllRequests(int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-		return requestRepository.findOpenRequestsWithPrimaryImage(pageable);
+
+		Page<RequestListDTO> pageResult = requestRepository.findOpenRequestsWithPrimaryImage(pageable);
+
+		return new PagedResponse<>(pageResult.getContent(), pageResult.getNumber(), pageResult.getSize(),
+				pageResult.getTotalElements(), pageResult.getTotalPages(), pageResult.isLast());
 	}
 
 	// Read all with status filter
@@ -86,7 +95,6 @@ public class RequestService {
 	public List<Request> getRequestsByUserIdAndStatus(String userId, String status) {
 		return requestRepository.findByUserIdAndStatus(userId, status);
 	}
-
 
 	// Update
 	@Transactional

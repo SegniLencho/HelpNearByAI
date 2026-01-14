@@ -2,6 +2,7 @@ package com.helpnearby.controller;
 
 import com.helpnearby.dto.CreateRequestDto;
 import com.helpnearby.dto.FileMeta;
+import com.helpnearby.dto.PagedResponse;
 import com.helpnearby.dto.PresignedUpload;
 import com.helpnearby.dto.RequestDto;
 import com.helpnearby.dto.RequestListDTO;
@@ -53,7 +54,7 @@ public class RequestsController {
 	}
 
 	@GetMapping
-	public ResponseEntity<Page<RequestListDTO>> getAllRequests(@RequestParam(defaultValue = "0") int page,
+	public ResponseEntity <PagedResponse<RequestListDTO>> getAllRequests(@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "5") int size) {
 		return ResponseEntity.ok(requestService.getAllRequests(page, size));
 

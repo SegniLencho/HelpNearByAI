@@ -12,11 +12,11 @@ import java.util.Map;
 @RequestMapping("/api")
 public class HealthController {
 
-    @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> health() {
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "UP");
-        response.put("message", "API is reachable");
-        return ResponseEntity.ok(response);
-    }
+	@GetMapping("/health")
+	public ResponseEntity<Map<String, String>> health() {
+		Map<String, String> response = new HashMap<>();
+		response.put("status", "UP");
+		response.put("message", "API is reachable");
+		return ResponseEntity.ok(response);
+	}
 }
