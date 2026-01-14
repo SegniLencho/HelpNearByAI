@@ -1,13 +1,19 @@
 package com.helpnearby.controller;
 
+import com.helpnearby.dto.CreateRequestDto;
 import com.helpnearby.dto.FileMeta;
 import com.helpnearby.dto.PresignedUpload;
+import com.helpnearby.dto.RequestDto;
 import com.helpnearby.dto.RequestListDTO;
+import com.helpnearby.dto.RequestResponseDto;
+import com.helpnearby.dto.UpdateRequestDto;
 import com.helpnearby.entities.Request;
 import com.helpnearby.service.RequestService;
 import com.helpnearby.service.S3UploadService;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -35,60 +41,40 @@ public class RequestsController {
 	}
 
 	// Create
-	@PostMapping
-	public ResponseEntity<Request> createRequest(@RequestBody Request request) {
-		Request created = requestService.createRequest(request);
+    @PostMapping("/{userId}")
+	public ResponseEntity<Request> createRequest(@PathVariable String userId, @RequestBody CreateRequestDto request) {
+		Request created = requestService.createRequest(userId,request);
+		return ResponseEntity.ok(created);
+	}
+    @PutMapping
+	public ResponseEntity<Request> updateRequest(@RequestBody UpdateRequestDto request) {
+		Request created = requestService.updateRequest(request);
 		return ResponseEntity.ok(created);
 	}
 
-	// Replaced with only top 5
-//	@GetMapping
-//	public ResponseEntity<List<Request>> getAllRequests() {
-//		return ResponseEntity.ok(requestService.getAllRequests());
-//	}
-	
-    @GetMapping
-    public ResponseEntity<Page<RequestListDTO>> getAllRequests(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
-		return ResponseEntity.ok(requestService.getAllRequests(page,size));
+	@GetMapping
+	public ResponseEntity<Page<RequestListDTO>> getAllRequests(@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "5") int size) {
+		return ResponseEntity.ok(requestService.getAllRequests(page, size));
 
-    }
-    
+	}
+
 	// Read by ID
 	@GetMapping("/{id}")
-	public ResponseEntity<Request> getRequestById(@PathVariable String id) {
-		return requestService.getRequestById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+	public ResponseEntity<RequestResponseDto> getRequestById(@PathVariable String id) {
+		RequestResponseDto dto = requestService.getRequestById(id);
+
+		if (Objects.isNull(dto)) {
+			return ResponseEntity.notFound().build();
+		}
+
+		return ResponseEntity.ok(dto);
 	}
 
 	// Read by User
 	@GetMapping("/user/{userId}")
 	public ResponseEntity<List<Request>> getRequestsByUser(@PathVariable String userId) {
 		return ResponseEntity.ok(requestService.getRequestsByUserId(userId));
-	}
-
-	// Update
-	@PutMapping("/{id}")
-	public ResponseEntity<Request> updateRequest(@PathVariable String id, @RequestBody Request request) {
-		try {
-			// First check if request exists
-			if (!requestService.getRequestById(id).isPresent()) {
-				System.err.println("Request not found with id: " + id);
-				return ResponseEntity.notFound().build();
-			}
-			
-			Request updated = requestService.updateRequest(id, request);
-			return ResponseEntity.ok(updated);
-		} catch (IllegalArgumentException e) {
-			// Return 400 for validation errors
-			System.err.println("Validation error: " + e.getMessage());
-			return ResponseEntity.badRequest().build();
-		} catch (Exception e) {
-			// Log the full error for debugging
-			System.err.println("Error updating request with id " + id + ": " + e.getMessage());
-			e.printStackTrace();
-			return ResponseEntity.internalServerError().build();
-		}
 	}
 
 	// Delete

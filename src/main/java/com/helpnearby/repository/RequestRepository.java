@@ -52,31 +52,28 @@ public interface RequestRepository extends JpaRepository<Request, String> {
 	// Filter by status and user
 	@Query("SELECT r FROM Request r WHERE r.userId = :userId AND r.status = :status ORDER BY r.createdAt DESC")
 	List<Request> findByUserIdAndStatus(String userId, String status);
-	
+
 	@Query("""
-		    SELECT new com.helpnearby.dto.RequestListDTO(
-		        r.id,
-		        r.title,
-		        r.description,
-		        r.category,
-		        r.reward,
-		        r.urgency,
-		        r.latitude,
-		        r.longitude,
-		        r.createdAt,
-		        ri.url
-		    )
-		    FROM Request r
-		    LEFT JOIN r.images ri
-		        ON ri.primaryImage = true
-		    WHERE r.status = 'OPEN'
-		    ORDER BY r.createdAt DESC
-		""")
+			    SELECT new com.helpnearby.dto.RequestListDTO(
+			        r.id,
+			        r.title,
+			        r.description,
+			        r.category,
+			        r.reward,
+			        r.urgency,
+			        r.latitude,
+			        r.longitude,
+			        r.createdAt,
+			        ri.url,
+			        ri.id,
+			        ri.s3Key
+			    )
+			    FROM Request r
+			    LEFT JOIN r.images ri
+			        ON ri.primaryImage = true
+			    WHERE r.status = 'OPEN'
+			    ORDER BY r.createdAt DESC
+			""")
 	Page<RequestListDTO> findOpenRequestsWithPrimaryImage(Pageable pageable);
-	
-	
-//	String id, String title, String description,String category, Double reward, String urgency,String latitude,String latitude, Instant createdAt,
-//	String images) {
+
 }
-
-

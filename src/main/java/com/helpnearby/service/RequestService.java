@@ -1,13 +1,18 @@
 package com.helpnearby.service;
 
+import com.helpnearby.dto.CreateRequestDto;
+import com.helpnearby.dto.RequestImageResponseDto;
 import com.helpnearby.dto.RequestListDTO;
+import com.helpnearby.dto.RequestResponseDto;
+import com.helpnearby.dto.UpdateRequestDto;
+import com.helpnearby.dto.UpdateRequestImageDto;
 import com.helpnearby.entities.Request;
 import com.helpnearby.entities.RequestImage;
-import com.helpnearby.repository.RequestRepository;
 import com.helpnearby.repository.RequestImageRepository;
-import com.helpnearby.service.S3UploadService;
+import com.helpnearby.repository.RequestRepository;
+import com.helpnearby.util.RequestCreateMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,12 +23,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
-import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @Service
 public class RequestService {
 
-	@Autowired
 	private RequestRepository requestRepository;
 	
 	@Autowired
@@ -35,24 +39,29 @@ public class RequestService {
 	@Autowired
 	private S3UploadService s3UploadService;
 
+	private RequestImageRepository requestImageRepository;
+
+	private final S3UploadService s3UploadService;
+
+	RequestService(RequestRepository requestRepository, RequestImageRepository requestImageRepository,
+			S3UploadService s3UploadService) {
+		this.requestRepository = requestRepository;
+		this.requestImageRepository = requestImageRepository;
+		this.s3UploadService = s3UploadService;
+	}
+
 	// Create
-	public Request createRequest(Request request) {
+	public Request createRequest(String userId, CreateRequestDto requestDto) {
+		Request request = RequestCreateMapper.toEntity(userId, requestDto);
+		System.out.println("Create Request payload " + requestDto.toString());
 		return requestRepository.save(request);
 	}
 
-	// Read all - optimized to only fetch OPEN requests by default
-//	public Page<Request> getAllRequests(int page, int size) {
-//		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-//		return requestRepository.findOpenRequestsWithImages(pageable);
-//	}
-	
-	
 	public Page<RequestListDTO> getAllRequests(int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 		return requestRepository.findOpenRequestsWithPrimaryImage(pageable);
 	}
-	
-	
+
 	// Read all with status filter
 	public Page<Request> getAllRequestsByStatus(String status, int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -63,19 +72,20 @@ public class RequestService {
 	}
 
 	// Read by ID - try standard findById first, then with images
-	public Optional<Request> getRequestById(String id) {
+	public RequestResponseDto getRequestById(String id) {
+		RequestResponseDto requestResponseDto = new RequestResponseDto();
 		Optional<Request> request = requestRepository.findById(id);
-		if (request.isEmpty()) {
-			request = requestRepository.findByIdWithImages(id);
+		if (!request.isEmpty()) {
+			requestResponseDto = convertReqeustToDto(request.get());
 		}
-		return request;
+		return requestResponseDto;
 	}
 
 	// Read by User - optimized query
 	public List<Request> getRequestsByUserId(String userId) {
 		return requestRepository.findByUserIdWithImages(userId);
 	}
-	
+
 	// Read by User and Status
 	public List<Request> getRequestsByUserIdAndStatus(String userId, String status) {
 		return requestRepository.findByUserIdAndStatus(userId, status);
@@ -92,132 +102,41 @@ public class RequestService {
 
 	// Update
 	@Transactional
-	public Request updateRequest(String id, Request requestUpdate) {
-		System.out.println("Attempting to update request with id: " + id);
-		
-		// Try to find the request - use standard findById first as it's more reliable
-		Optional<Request> existingOpt = requestRepository.findById(id);
-		System.out.println("Standard findById result: " + (existingOpt.isPresent() ? "FOUND" : "NOT FOUND"));
-		
-		// If not found with standard method, try with EntityGraph
-		if (existingOpt.isEmpty()) {
-			existingOpt = requestRepository.findByIdWithImages(id);
-			System.out.println("EntityGraph findById result: " + (existingOpt.isPresent() ? "FOUND" : "NOT FOUND"));
+	public Request updateRequest(UpdateRequestDto requestUpdate) {
+
+		System.out.println("Attempting to update request with id: " + requestUpdate);
+		Request existing = requestRepository.findById(requestUpdate.getRequestId())
+				.orElseThrow(() -> new RuntimeException("Request not found with id: " + requestUpdate.getRequestId()));
+
+		// 1. Delete removed images
+		if (requestUpdate.getRemovedImages() != null) {
+			List<String> idsToDelete = requestUpdate.getRemovedImages().stream().map(UpdateRequestImageDto::getId)
+					.collect(Collectors.toList());
+			List<RequestImage> imagesToDelete = requestImageRepository.findAllById(idsToDelete);
+			imagesToDelete.forEach(img -> s3UploadService.deleteObject(img.getS3Key()));
+			requestImageRepository.deleteAll(imagesToDelete);
 		}
-		
-		Request existing = existingOpt.orElseThrow(() -> {
-			System.err.println("Request not found with id: " + id);
-			return new RuntimeException("Request not found with id: " + id);
-		});
-		
-		System.out.println("Request found, proceeding with update...");
-		
-		// Initialize images collection if null to avoid NPE
-		if (existing.getImages() == null) {
-			existing.setImages(new ArrayList<>());
-		}
-		
-		// Security: userId should not be changed via update
-		if (requestUpdate.getUserId() != null && !requestUpdate.getUserId().equals(existing.getUserId())) {
-			throw new IllegalArgumentException("Cannot change userId of a request");
-		}
-		
-		// Update only the fields that are provided (non-null)
-		if (requestUpdate.getTitle() != null) {
-			existing.setTitle(requestUpdate.getTitle());
-		}
-		if (requestUpdate.getDescription() != null) {
-			existing.setDescription(requestUpdate.getDescription());
-		}
-		if (requestUpdate.getCategory() != null) {
-			existing.setCategory(requestUpdate.getCategory());
-		}
-		if (requestUpdate.getReward() != null) {
-			existing.setReward(requestUpdate.getReward());
-		}
-		if (requestUpdate.getStatus() != null) {
-			existing.setStatus(requestUpdate.getStatus());
-		}
-		if (requestUpdate.getUrgency() != null) {
-			existing.setUrgency(requestUpdate.getUrgency());
-		}
-		// Update coordinates (always update, even if 0.0)
-		existing.setLatitude(requestUpdate.getLatitude());
-		existing.setLongitude(requestUpdate.getLongitude());
-		
-		// Handle images - only update if non-empty array is provided
-		// IMPORTANT: Delete images first, then reload entity to avoid FK constraint violation
-		// Logic:
-		// - If images is null: keep existing images (don't update)
-		// - If images is empty array []: keep existing images (don't clear)
-		// - If images has items: replace with new images
-		if (requestUpdate.getImages() != null && !requestUpdate.getImages().isEmpty()) {
-			// Initialize collection if null
-			if (existing.getImages() == null) {
-				existing.setImages(new ArrayList<>());
+
+		// 2. Add new images
+		if (requestUpdate.getNewImages() != null) {
+			for (UpdateRequestImageDto newImg : requestUpdate.getNewImages()) {
+				RequestImage imgEntity = new RequestImage();
+				imgEntity.setS3Key(newImg.getS3Key());
+				imgEntity.setUrl(newImg.getUrl());
+				imgEntity.setPrimaryImage(newImg.isPrimaryImage());
+				imgEntity.setRequest(existing);
+				requestImageRepository.save(imgEntity);
 			}
-			
-			// CRITICAL: Delete images from S3 first, then from database
-			if (!existing.getImages().isEmpty()) {
-				// Store request ID and collect image URLs before deletion
-				String requestId = existing.getId();
-				List<String> imageUrls = new ArrayList<>();
-				
-				// Collect all existing image URLs for S3 deletion
-				existing.getImages().forEach(img -> {
-					if (img.getUrl() != null && !img.getUrl().isEmpty()) {
-						imageUrls.add(img.getUrl());
-					}
-				});
-				
-				// Delete all old images from S3
-				System.out.println("Deleting " + imageUrls.size() + " old images from S3...");
-				imageUrls.forEach(url -> s3UploadService.deleteFileFromS3(url));
-				
-				// Delete all images using native SQL in separate transaction
-				// This completely bypasses Hibernate's entity lifecycle
-				deleteRequestImages(requestId);
-				
-				// Reload the entity from database to get fresh state without images
-				// This clears Hibernate's internal tracking of the collection
-				Request refreshed = requestRepository.findByIdWithImages(requestId)
-					.orElse(existing);
-				
-				// Copy all updated field values to refreshed entity
-				refreshed.setTitle(existing.getTitle());
-				refreshed.setDescription(existing.getDescription());
-				refreshed.setCategory(existing.getCategory());
-				refreshed.setReward(existing.getReward());
-				refreshed.setStatus(existing.getStatus());
-				refreshed.setUrgency(existing.getUrgency());
-				refreshed.setLatitude(existing.getLatitude());
-				refreshed.setLongitude(existing.getLongitude());
-				
-				// Use refreshed entity going forward
-				existing = refreshed;
-			}
-			
-			// Create and add new images to the existing entity
-			final Request finalExisting = existing; // Final reference for lambda
-			requestUpdate.getImages().forEach(img -> {
-				if (img != null) {
-					// Create new RequestImage entity
-					RequestImage newImage = new RequestImage();
-					newImage.setUrl(img.getUrl());
-					newImage.setPrimaryImage(img.isPrimaryImage());
-					newImage.setRequest(finalExisting);
-					finalExisting.getImages().add(newImage);
-				}
-			});
 		}
-		// If images is null or empty array, do nothing - preserve existing images
-		
-		// updatedAt will be set automatically by @PreUpdate
-		// createdAt is preserved because it's marked as updatable = false
-		System.out.println("Saving updated request...");
-		Request saved = requestRepository.save(existing);
-		System.out.println("Request saved successfully with id: " + saved.getId());
-		return saved;
+
+		Optional.ofNullable(requestUpdate.getTitle()).ifPresent(existing::setTitle);
+		Optional.ofNullable(requestUpdate.getDescription()).ifPresent(existing::setDescription);
+		Optional.ofNullable(requestUpdate.getCategory()).ifPresent(existing::setCategory);
+		Optional.ofNullable(requestUpdate.getReward()).ifPresent(existing::setReward);
+		Optional.ofNullable(requestUpdate.getStatus()).ifPresent(existing::setStatus);
+		Optional.ofNullable(requestUpdate.getUrgency()).ifPresent(existing::setUrgency);
+
+		return requestRepository.save(existing);
 	}
 
 	// Delete
@@ -226,5 +145,37 @@ public class RequestService {
 	}
 
 //	TODO Fetch top 5 request based on user zipcode + 5 miles
+	public RequestResponseDto convertReqeustToDto(Request request) {
+		RequestResponseDto dto = new RequestResponseDto();
+
+		dto.setId(request.getId());
+		dto.setUserId(request.getUserId());
+		dto.setTitle(request.getTitle());
+		dto.setDescription(request.getDescription());
+		dto.setCategory(request.getCategory());
+		dto.setReward(request.getReward());
+
+		dto.setLatitude(request.getLatitude());
+		dto.setLongitude(request.getLongitude());
+
+		dto.setStatus(request.getStatus());
+		dto.setUrgency(request.getUrgency());
+
+		dto.setCreatedAt(request.getCreatedAt());
+		dto.setUpdatedAt(request.getUpdatedAt());
+
+		dto.setLocation(request.getLocation() != null ? request.getLocation().toString() : null);
+
+		dto.setImages(request.getImages().stream().map(img -> {
+			RequestImageResponseDto imageDto = new RequestImageResponseDto();
+			imageDto.setId(img.getId());
+			imageDto.setUrl(img.getUrl());
+			imageDto.setPrimaryImage(img.isPrimaryImage());
+			imageDto.setS3Key(img.getS3Key());
+			return imageDto;
+		}).toList());
+
+		return dto;
+	}
 
 }

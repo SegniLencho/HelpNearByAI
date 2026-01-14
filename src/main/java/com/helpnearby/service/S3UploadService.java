@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class S3UploadService {
-
 	@Value(value = "${aws.s3.accessKeyId}")
 	private String accessKeyId;
 
@@ -30,6 +29,7 @@ public class S3UploadService {
 	private String accessSecret;
 
 	private S3Presigner presigner;
+	private S3Client s3Client; // Add S3 client for delete
 	private final String bucket = "helpnearby";
 	
 	@Autowired
@@ -38,7 +38,11 @@ public class S3UploadService {
 	@PostConstruct
 	public void init() {
 		AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, accessSecret);
+
 		this.presigner = S3Presigner.builder().region(Region.US_EAST_2)
+				.credentialsProvider(StaticCredentialsProvider.create(credentials)).build();
+
+		this.s3Client = S3Client.builder().region(Region.US_EAST_2)
 				.credentialsProvider(StaticCredentialsProvider.create(credentials)).build();
 	}
 
@@ -54,7 +58,7 @@ public class S3UploadService {
 
 		PresignedPutObjectRequest presigned = presigner.presignPutObject(presignRequest);
 
-		return new PresignedUpload(presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
+		return new PresignedUpload(key, presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
 	}
 
 	public PresignedUpload generatePresignedUrlProfilePicture(String fileName, String contentType) {
@@ -69,75 +73,13 @@ public class S3UploadService {
 
 		PresignedPutObjectRequest presigned = presigner.presignPutObject(presignRequest);
 
-		return new PresignedUpload(presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
+		return new PresignedUpload(key, presigned.url().toString(), "https://" + bucket + ".s3.amazonaws.com/" + key);
 	}
-	
-	/**
-	 * Delete a file from S3 using its full URL
-	 * @param s3Url The full S3 URL (e.g., https://helpnearby.s3.amazonaws.com/requests/uuid/filename.jpg)
-	 */
-	public void deleteFileFromS3(String s3Url) {
-		if (s3Url == null || s3Url.isEmpty()) {
-			return;
-		}
-		
-		try {
-			// Extract the S3 key from the URL
-			// URL format: https://helpnearby.s3.amazonaws.com/requests/uuid/filename.jpg
-			// Key format: requests/uuid/filename.jpg
-			String key = extractS3KeyFromUrl(s3Url);
-			if (key == null || key.isEmpty()) {
-				System.err.println("Could not extract S3 key from URL: " + s3Url);
-				return;
-			}
-			
-			DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-				.bucket(bucket)
-				.key(key)
-				.build();
-			
-			s3Client.deleteObject(deleteRequest);
-			System.out.println("Successfully deleted file from S3: " + key);
-		} catch (Exception e) {
-			System.err.println("Error deleting file from S3: " + s3Url + " - " + e.getMessage());
-			// Don't throw exception - log and continue
-		}
+
+	public void deleteObject(String s3Key) {
+		DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder().bucket(bucket).key(s3Key).build();
+
+		s3Client.deleteObject(deleteRequest);
 	}
-	
-	/**
-	 * Extract S3 key from full S3 URL
-	 * @param s3Url Full S3 URL
-	 * @return S3 key or null if extraction fails
-	 */
-	private String extractS3KeyFromUrl(String s3Url) {
-		if (s3Url == null || s3Url.isEmpty()) {
-			return null;
-		}
-		
-		// Handle different URL formats:
-		// https://helpnearby.s3.amazonaws.com/requests/uuid/filename.jpg
-		// https://helpnearby.s3.us-east-2.amazonaws.com/requests/uuid/filename.jpg
-		String prefix = bucket + ".s3";
-		int prefixIndex = s3Url.indexOf(prefix);
-		if (prefixIndex == -1) {
-			return null;
-		}
-		
-		// Find the first '/' after the bucket name
-		int keyStart = s3Url.indexOf('/', prefixIndex + prefix.length());
-		if (keyStart == -1) {
-			return null;
-		}
-		
-		// Extract everything after the first '/' after bucket name
-		String key = s3Url.substring(keyStart + 1);
-		
-		// Remove query parameters if any
-		int queryIndex = key.indexOf('?');
-		if (queryIndex != -1) {
-			key = key.substring(0, queryIndex);
-		}
-		
-		return key;
-	}
+
 }
