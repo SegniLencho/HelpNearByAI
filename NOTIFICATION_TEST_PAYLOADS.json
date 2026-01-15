@@ -1,0 +1,165 @@
+{
+  "description": "Test payloads for Firebase Push Notification Service",
+  "baseUrl": "http://localhost:8080/api",
+  
+  "1_register_fcm_token": {
+    "method": "PUT",
+    "endpoint": "/api/user/{userId}/fcm-token",
+    "description": "Register or update FCM token for a user",
+    "example": {
+      "url": "/api/user/user123/fcm-token",
+      "body": {
+        "fcmToken": "dK3jP9mXqR8sT5vW2yZ6bN1cF4hJ7kL0mP3qR6sT9vW2yZ5bN8cF1hJ4kL7mP0qR3sT6vW9yZ2bN5cF8hJ1kL4mP7qR0"
+      }
+    }
+  },
+
+  "2_send_notification_to_single_user": {
+    "method": "POST",
+    "endpoint": "/api/notifications/user",
+    "description": "Send notification to a single user by user ID",
+    "examples": [
+      {
+        "name": "Basic notification (required fields only)",
+        "body": {
+          "userId": "user123",
+          "title": "New Request",
+          "body": "You have a new help request nearby!"
+        }
+      },
+      {
+        "name": "Notification with image",
+        "body": {
+          "userId": "user123",
+          "title": "Request Accepted",
+          "body": "Your help request has been accepted by John Doe",
+          "imageUrl": "https://example.com/images/request-accepted.png"
+        }
+      },
+      {
+        "name": "Notification with additional data",
+        "body": {
+          "userId": "user123",
+          "title": "New Message",
+          "body": "You have a new message",
+          "data": "{\"requestId\":\"req456\",\"type\":\"message\",\"senderId\":\"user789\"}"
+        }
+      },
+      {
+        "name": "Complete notification with all fields",
+        "body": {
+          "userId": "user123",
+          "title": "Help Request Update",
+          "body": "Your help request status has been updated",
+          "imageUrl": "https://example.com/images/status-update.png",
+          "data": "{\"requestId\":\"req456\",\"status\":\"IN_PROGRESS\",\"timestamp\":\"2024-01-15T10:30:00Z\"}"
+        }
+      }
+    ]
+  },
+
+  "3_send_notification_to_multiple_users": {
+    "method": "POST",
+    "endpoint": "/api/notifications/users",
+    "description": "Send notification to multiple users by their user IDs",
+    "examples": [
+      {
+        "name": "Basic multi-user notification",
+        "body": {
+          "userIds": ["user123", "user456", "user789"],
+          "title": "Important Announcement",
+          "body": "All users: New features are now available!"
+        }
+      },
+      {
+        "name": "Multi-user notification with image",
+        "body": {
+          "userIds": ["user123", "user456", "user789"],
+          "title": "Community Update",
+          "body": "Check out the new community guidelines",
+          "imageUrl": "https://example.com/images/community-update.jpg"
+        }
+      },
+      {
+        "name": "Multi-user notification with data",
+        "body": {
+          "userIds": ["user123", "user456"],
+          "title": "Emergency Alert",
+          "body": "There is an emergency in your area",
+          "data": "{\"type\":\"emergency\",\"location\":{\"lat\":40.7128,\"lng\":-74.0060},\"priority\":\"high\"}"
+        }
+      }
+    ]
+  },
+
+  "4_send_notification_to_topic": {
+    "method": "POST",
+    "endpoint": "/api/notifications/topic",
+    "description": "Send notification to all users subscribed to a topic",
+    "examples": [
+      {
+        "name": "Basic topic notification",
+        "body": {
+          "topic": "all_users",
+          "title": "System Maintenance",
+          "body": "Scheduled maintenance will occur tonight at 2 AM"
+        }
+      },
+      {
+        "name": "Location-based topic notification",
+        "body": {
+          "topic": "newyork_users",
+          "title": "Weather Alert",
+          "body": "Severe weather warning for New York area",
+          "imageUrl": "https://example.com/images/weather-alert.png"
+        }
+      },
+      {
+        "name": "Topic notification with data",
+        "body": {
+          "topic": "help_requesters",
+          "title": "New Feature Available",
+          "body": "You can now add multiple images to your requests",
+          "data": "{\"feature\":\"multi_image_upload\",\"version\":\"2.0\",\"releaseDate\":\"2024-01-15\"}"
+        }
+      },
+      {
+        "name": "Emergency broadcast to all users",
+        "body": {
+          "topic": "all_users",
+          "title": "Emergency Alert",
+          "body": "Please stay indoors due to severe weather conditions",
+          "imageUrl": "https://example.com/images/emergency-banner.jpg",
+          "data": "{\"alertType\":\"weather\",\"severity\":\"critical\",\"expiresAt\":\"2024-01-15T18:00:00Z\"}"
+        }
+      }
+    ]
+  },
+
+  "curl_examples": {
+    "1_register_fcm_token": "curl -X PUT http://localhost:8080/api/user/user123/fcm-token \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"fcmToken\":\"dK3jP9mXqR8sT5vW2yZ6bN1cF4hJ7kL0mP3qR6sT9vW2yZ5bN8cF1hJ4kL7mP0qR3sT6vW9yZ2bN5cF8hJ1kL4mP7qR0\"}'",
+    
+    "2_send_to_single_user": "curl -X POST http://localhost:8080/api/notifications/user \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"userId\":\"user123\",\"title\":\"New Request\",\"body\":\"You have a new help request nearby!\"}'",
+    
+    "3_send_to_multiple_users": "curl -X POST http://localhost:8080/api/notifications/users \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"userIds\":[\"user123\",\"user456\",\"user789\"],\"title\":\"Important Announcement\",\"body\":\"All users: New features are now available!\"}'",
+    
+    "4_send_to_topic": "curl -X POST http://localhost:8080/api/notifications/topic \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"topic\":\"all_users\",\"title\":\"System Maintenance\",\"body\":\"Scheduled maintenance will occur tonight at 2 AM\"}'"
+  },
+
+  "testing_steps": [
+    "1. First, register an FCM token for a user using endpoint #1",
+    "2. Use the registered user ID to test sending notifications",
+    "3. For topic notifications, ensure users are subscribed to the topic first",
+    "4. Replace placeholder values (user123, etc.) with actual user IDs from your database",
+    "5. Replace FCM token with actual token from your mobile app"
+  ],
+
+  "notes": [
+    "All user IDs must exist in your database",
+    "FCM tokens must be valid and obtained from the mobile app",
+    "Topics must follow Firebase naming rules (alphanumeric and -_~ characters only)",
+    "The 'data' field should contain a JSON string for additional payload data",
+    "Image URLs should be publicly accessible HTTPS URLs",
+    "All required fields are marked with @NotBlank validation"
+  ]
+}
