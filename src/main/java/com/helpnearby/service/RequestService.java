@@ -17,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
@@ -45,6 +47,8 @@ public class RequestService {
 	// Create
 	public Request createRequest(String userId, CreateRequestDto requestDto) {
 		Request request = RequestCreateMapper.toEntity(userId, requestDto);
+		// Notify Nearby Users
+		notifyNearbyUsers(request);
 		System.out.println("Create Request payload " + requestDto.toString());
 		return requestRepository.save(request);
 	}
@@ -132,6 +136,20 @@ public class RequestService {
 			requestImageRepository.deleteByRequestId(requestId);
 		}
 		requestRepository.deleteById(requestId);
+	}
+
+	@Async
+	public void notifyNearbyUsers(Request request) {
+	 
+/**	   User creates request
+		   ↓
+		RequestCreatedEvent published
+		   ↓
+		Listener finds nearby users
+		   ↓
+		Listener sends FCM notifications (async)
+		
+**/		
 	}
 
 //	TODO Fetch top 5 request based on user zipcode + 5 miles

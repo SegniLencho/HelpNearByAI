@@ -5,6 +5,9 @@ import com.helpnearby.dto.NotificationRequestDto;
 import com.helpnearby.dto.NotificationResponseDto;
 import com.helpnearby.dto.TopicNotificationRequestDto;
 import com.helpnearby.service.FirebaseNotificationService;
+
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,50 +26,33 @@ public class NotificationController {
 	}
 
 	/**
-	 * Send notification to a single user
-	 * POST /api/notifications/user
+	 * Send notification to a single user POST /api/notifications/user
 	 */
 	@PostMapping("/user")
 	public ResponseEntity<NotificationResponseDto> sendToUser(@Valid @RequestBody NotificationRequestDto request) {
-		NotificationResponseDto response = notificationService.sendNotificationToUser(
-				request.getUserId(),
-				request.getTitle(),
-				request.getBody(),
-				request.getImageUrl(),
-				request.getData()
-		);
+		NotificationResponseDto response = notificationService.sendNotificationToUser(request.getUserId(),
+				request.getTitle(), request.getBody(), request.getImageUrl(), request.getData());
 		return ResponseEntity.ok(response);
 	}
 
 	/**
-	 * Send notification to multiple users
-	 * POST /api/notifications/users
+	 * Send notification to multiple users POST /api/notifications/users
 	 */
 	@PostMapping("/users")
-	public ResponseEntity<NotificationResponseDto> sendToUsers(@Valid @RequestBody MultiUserNotificationRequestDto request) {
-		NotificationResponseDto response = notificationService.sendNotificationToUsers(
-				request.getUserIds(),
-				request.getTitle(),
-				request.getBody(),
-				request.getImageUrl(),
-				request.getData()
-		);
+	public ResponseEntity<NotificationResponseDto> sendToUsers(
+			@Valid @RequestBody MultiUserNotificationRequestDto multiUserNotificationDto) {
+		NotificationResponseDto response = notificationService.sendNotificationToUsers(multiUserNotificationDto);
 		return ResponseEntity.ok(response);
 	}
 
 	/**
-	 * Send notification to a topic
-	 * POST /api/notifications/topic
+	 * Send notification to a topic POST /api/notifications/topic
 	 */
 	@PostMapping("/topic")
-	public ResponseEntity<NotificationResponseDto> sendToTopic(@Valid @RequestBody TopicNotificationRequestDto request) {
-		NotificationResponseDto response = notificationService.sendNotificationToTopic(
-				request.getTopic(),
-				request.getTitle(),
-				request.getBody(),
-				request.getImageUrl(),
-				request.getData()
-		);
+	public ResponseEntity<NotificationResponseDto> sendToTopic(
+			@Valid @RequestBody TopicNotificationRequestDto request) {
+		NotificationResponseDto response = notificationService.sendNotificationToTopic(request.getTopic(),
+				request.getTitle(), request.getBody(), request.getImageUrl(), request.getData());
 		return ResponseEntity.ok(response);
 	}
 }

@@ -3,20 +3,22 @@ package com.helpnearby.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
+import java.util.Map;
 
 public class MultiUserNotificationRequestDto {
-	
+
 	@NotEmpty(message = "User IDs list is required")
 	private List<String> userIds;
-	
+
 	@NotBlank(message = "Title is required")
 	private String title;
-	
+
 	@NotBlank(message = "Body is required")
 	private String body;
-	
+
 	private String imageUrl;
-	private String data; // JSON string for additional data
+
+	Map<String, String> data;
 
 	public MultiUserNotificationRequestDto() {
 	}
@@ -59,11 +61,11 @@ public class MultiUserNotificationRequestDto {
 		this.imageUrl = imageUrl;
 	}
 
-	public String getData() {
+	public Map<String, String> getData() {
 		return data;
 	}
 
-	public void setData(String data) {
+	public void setData(Map<String, String> data) {
 		this.data = data;
 	}
 }
