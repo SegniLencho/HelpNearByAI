@@ -45,11 +45,12 @@ public class RequestService {
 	private NotificationService notificationService;
 
 	RequestService(RequestRepository requestRepository, RequestImageRepository requestImageRepository,
-			S3UploadService s3UploadService, UserRepository userRepository) {
+			S3UploadService s3UploadService, UserRepository userRepository,NotificationService notificationService) {
 		this.requestRepository = requestRepository;
 		this.requestImageRepository = requestImageRepository;
 		this.s3UploadService = s3UploadService;
 		this.userRepository = userRepository;
+		this.notificationService=notificationService;
 	}
 
 	// Create
