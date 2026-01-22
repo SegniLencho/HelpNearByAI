@@ -16,15 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
-public class FirebaseNotificationService {
+public class NotificationService {
 
-	private static final Logger logger = LoggerFactory.getLogger(FirebaseNotificationService.class);
+	private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
 
 	@Autowired
 	private FirebaseMessaging firebaseMessaging;
@@ -74,14 +72,13 @@ public class FirebaseNotificationService {
 	/**
 	 * Send notification to multiple users by user IDs
 	 */
-	public NotificationResponseDto sendNotificationToUsers(MultiUserNotificationRequestDto dto) {		
+	public NotificationResponseDto sendNotificationToUsers(MultiUserNotificationRequestDto dto) {
 
 		try {
-			List<User> users = userRepository.findAllById(dto.getUserIds());
 			List<String> fcmTokens = new ArrayList<>();
 			List<String> usersWithoutTokens = new ArrayList<>();
 
-			for (User user : users) {
+			for (User user : dto.getUserIds()) {
 				if (user.getFcmToken() != null && !user.getFcmToken().isBlank()) {
 					fcmTokens.add(user.getFcmToken());
 				} else {
@@ -92,7 +89,8 @@ public class FirebaseNotificationService {
 				return new NotificationResponseDto(false, "No valid FCM tokens found for provided users");
 			}
 
-			Notification.Builder notificationBuilder = Notification.builder().setTitle(dto.getTitle()).setBody(dto.getBody());
+			Notification.Builder notificationBuilder = Notification.builder().setTitle(dto.getTitle())
+					.setBody(dto.getBody());
 
 			if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
 				notificationBuilder.setImage(dto.getImageUrl());

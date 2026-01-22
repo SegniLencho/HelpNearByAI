@@ -5,10 +5,12 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.Map;
 
+import com.helpnearby.entities.User;
+
 public class MultiUserNotificationRequestDto {
 
 	@NotEmpty(message = "User IDs list is required")
-	private List<String> userIds;
+	private List<User> userIds;
 
 	@NotBlank(message = "Title is required")
 	private String title;
@@ -23,17 +25,17 @@ public class MultiUserNotificationRequestDto {
 	public MultiUserNotificationRequestDto() {
 	}
 
-	public MultiUserNotificationRequestDto(List<String> userIds, String title, String body) {
+	public MultiUserNotificationRequestDto(List<User> userIds, String title, String body) {
 		this.userIds = userIds;
 		this.title = title;
 		this.body = body;
 	}
 
-	public List<String> getUserIds() {
+	public List<User> getUserIds() {
 		return userIds;
 	}
 
-	public void setUserIds(List<String> userIds) {
+	public void setUserIds(List<User> userIds) {
 		this.userIds = userIds;
 	}
 

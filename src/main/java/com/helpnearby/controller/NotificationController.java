@@ -4,9 +4,7 @@ import com.helpnearby.dto.MultiUserNotificationRequestDto;
 import com.helpnearby.dto.NotificationRequestDto;
 import com.helpnearby.dto.NotificationResponseDto;
 import com.helpnearby.dto.TopicNotificationRequestDto;
-import com.helpnearby.service.FirebaseNotificationService;
-
-import java.util.Map;
+import com.helpnearby.service.NotificationService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,9 +17,9 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/notifications")
 public class NotificationController {
 
-	private final FirebaseNotificationService notificationService;
+	private final NotificationService notificationService;
 
-	public NotificationController(FirebaseNotificationService notificationService) {
+	public NotificationController(NotificationService notificationService) {
 		this.notificationService = notificationService;
 	}
 
