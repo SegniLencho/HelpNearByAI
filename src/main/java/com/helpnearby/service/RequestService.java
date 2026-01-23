@@ -21,10 +21,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -45,12 +46,12 @@ public class RequestService {
 	private NotificationService notificationService;
 
 	RequestService(RequestRepository requestRepository, RequestImageRepository requestImageRepository,
-			S3UploadService s3UploadService, UserRepository userRepository,NotificationService notificationService) {
+			S3UploadService s3UploadService, UserRepository userRepository, NotificationService notificationService) {
 		this.requestRepository = requestRepository;
 		this.requestImageRepository = requestImageRepository;
 		this.s3UploadService = s3UploadService;
 		this.userRepository = userRepository;
-		this.notificationService=notificationService;
+		this.notificationService = notificationService;
 	}
 
 	// Create
@@ -59,11 +60,18 @@ public class RequestService {
 
 		// search for user with in 10 miles of raduis and notify them
 		Request createdRequest = requestRepository.save(request);
-		List<User> usersWithIn10Miles = notifyUserWithIn10MileRadius(requestDto.getLongitude(), request.getLatitude(),userId);
+		List<User> usersWithIn10Miles = notifyUserWithIn10MileRadius(requestDto.getLongitude(), request.getLatitude(),
+				userId);
 		// Notify Nearby Users
 		MultiUserNotificationRequestDto multiUserNotification = new MultiUserNotificationRequestDto();
-		multiUserNotification.setBody("New Help Requested");
-		multiUserNotification.setTitle("Your neighbor nearby needs help");
+		multiUserNotification.setTitle("New Help Requested");
+		multiUserNotification.setBody("Your neighbor nearby needs help");
+		Map<String, String> notificationDetails = new HashMap<>();
+		// Send RequestId so that user can see request details once clicked on
+		// Notification
+		notificationDetails.put("type", "NEW_REQUEST");
+		notificationDetails.put("requestId", createdRequest.getId());
+		multiUserNotification.setData(notificationDetails);
 		multiUserNotification.setUserIds(usersWithIn10Miles);
 		notificationService.sendNotificationToUsers(multiUserNotification);
 
@@ -157,7 +165,6 @@ public class RequestService {
 
 	public RequestResponseDto convertReqeustToDto(Request request) {
 		RequestResponseDto dto = new RequestResponseDto();
-
 		dto.setId(request.getId());
 		dto.setUserId(request.getUserId());
 		dto.setTitle(request.getTitle());
@@ -189,7 +196,7 @@ public class RequestService {
 	}
 
 	@Async
-	private List<User> notifyUserWithIn10MileRadius(double longitude, double latitude, String requesterUserId){
+	private List<User> notifyUserWithIn10MileRadius(double longitude, double latitude, String requesterUserId) {
 		double radiusMiles = 10;
 
 		double latDelta = radiusMiles / 69.0;
@@ -199,7 +206,8 @@ public class RequestService {
 		double lonMin = longitude - lonDelta;
 		double lonMax = longitude + lonDelta;
 
-		return userRepository.getUsersWithin10MilesOptimized(latitude, longitude, latMin, latMax, lonMin, lonMax,requesterUserId);
+		return userRepository.getUsersWithin10MilesOptimized(latitude, longitude, latMin, latMax, lonMin, lonMax,
+				requesterUserId);
 	}
 
 }
