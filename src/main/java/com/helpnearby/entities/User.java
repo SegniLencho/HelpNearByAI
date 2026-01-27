@@ -2,6 +2,7 @@ package com.helpnearby.entities;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -13,11 +14,11 @@ public class User {
 
 	@Id
 	private String id;
-	
-    @NotNull(message = "Name is required")
+
+	@NotNull(message = "Name is required")
 	private String name;
-	
-    @NotNull(message = "Email is required")
+
+	@NotNull(message = "Email is required")
 	private String email;
 	private String photoUrl;
 	private String phoneNumber;
@@ -26,6 +27,8 @@ public class User {
 	private String authProvider; // GOOGLE, APPLE, EMAIL
 	private LocalDateTime createdAt;
 	private String profile_picture_url;
+	@Column(name = "fcm_token")
+	private String fcmToken;
 
 	public String getId() {
 		return id;
@@ -98,11 +101,20 @@ public class User {
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
+
 	public String getProfile_picture_url() {
 		return profile_picture_url;
 	}
 
 	public void setProfile_picture_url(String profile_picture_url) {
 		this.profile_picture_url = profile_picture_url;
+	}
+
+	public String getFcmToken() {
+		return fcmToken;
+	}
+
+	public void setFcmToken(String fcmToken) {
+		this.fcmToken = fcmToken;
 	}
 }

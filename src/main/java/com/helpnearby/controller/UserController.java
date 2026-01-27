@@ -1,5 +1,6 @@
 package com.helpnearby.controller;
 
+import com.helpnearby.dto.FcmTokenDto;
 import com.helpnearby.dto.FileMeta;
 import com.helpnearby.dto.PresignedUpload;
 import com.helpnearby.entities.User;
@@ -75,5 +76,14 @@ public class UserController {
 	@PostMapping("/presign")
 	public PresignedUpload presign(@RequestBody FileMeta files) {
 		return  (s3UploadService.generatePresignedUrlProfilePicture(files.fileName(), files.contentType()));
+	}
+
+	// Register or update FCM token
+	@PutMapping("/{id}/fcm-token")
+	public ResponseEntity<User> updateFcmToken(@PathVariable String id, @Valid @RequestBody FcmTokenDto fcmTokenDto) {
+		return userService.getByUserID(id).map(existing -> {
+			existing.setFcmToken(fcmTokenDto.getFcmToken());
+			return ResponseEntity.ok(userService.updateUsers(existing));
+		}).orElse(ResponseEntity.notFound().build());
 	}
 }

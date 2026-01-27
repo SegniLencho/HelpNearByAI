@@ -40,7 +40,7 @@ public class RequestsController {
 		this.s3UploadService = s3UploadService;
 	}
 
-	// Create
+	// Create Request
     @PostMapping("/{userId}")
 	public ResponseEntity<Request> createRequest(@PathVariable String userId, @RequestBody CreateRequestDto request) {
 		Request created = requestService.createRequest(userId,request);
