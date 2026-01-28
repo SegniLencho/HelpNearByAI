@@ -65,7 +65,7 @@ public class RequestService {
 		// Notify Nearby Users
 		MultiUserNotificationRequestDto multiUserNotification = new MultiUserNotificationRequestDto();
 		multiUserNotification.setTitle("New Help Requested");
-		multiUserNotification.setBody("Your neighbor nearby needs help");
+		multiUserNotification.setBody(requestDto.getTitle() + "-" +requestDto.getCategory());
 		Map<String, String> notificationDetails = new HashMap<>();
 		// Send RequestId so that user can see request details once clicked on
 		// Notification
