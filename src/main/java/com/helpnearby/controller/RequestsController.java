@@ -3,7 +3,6 @@ package com.helpnearby.controller;
 import com.helpnearby.dto.CreateRequestDto;
 import com.helpnearby.dto.FileMeta;
 import com.helpnearby.dto.PresignedUpload;
-import com.helpnearby.dto.RequestDto;
 import com.helpnearby.dto.RequestListDTO;
 import com.helpnearby.dto.RequestResponseDto;
 import com.helpnearby.dto.UpdateRequestDto;
@@ -13,8 +12,6 @@ import com.helpnearby.service.S3UploadService;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;

@@ -1,54 +1,88 @@
 package com.helpnearby.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.helpnearby.dto.MultiUserNotificationRequestDto;
 import com.helpnearby.entities.Message;
+import com.helpnearby.entities.User;
 import com.helpnearby.repository.MessageRepository;
+import com.helpnearby.repository.UserRepository;
 
 @Service
 public class MessageService {
 
-    @Autowired
-    private MessageRepository messageRepository;
+	@Autowired
+	private MessageRepository messageRepository;
 
-    public Message createMessage(Message message) {
-        if (message.getTimestamp() == null) {
-            message.setTimestamp(LocalDateTime.now());
-        }
-        return messageRepository.save(message);
-    }
+	@Autowired
+	private UserRepository userRepository;
 
-    public List<Message> getConversationBetweenUsers(String userId1, String userId2) {
-        return messageRepository.findConversationBetweenUsers(userId1, userId2);
-    }
+	@Autowired
+	private NotificationService notificationService;
 
-    public List<Message> getUnreadMessages(String userId) {
-        return messageRepository.findUnreadMessagesByReceiverId(userId);
-    }
+	public Message createMessage(Message message) {
+		if (message.getTimestamp() == null) {
+			message.setTimestamp(LocalDateTime.now());
+		}
+		return messageRepository.save(message);
+	}
 
-    public List<String> getUserConversationPartners(String userId) {
-        return messageRepository.findUserConversationPartners(userId);
-    }
+	public List<Message> getConversationBetweenUsers(String userId1, String userId2) {
+		return messageRepository.findConversationBetweenUsers(userId1, userId2);
+	}
 
-    @Transactional
-    public void markMessagesAsRead(String senderId, String receiverId) {
-        List<Message> unreadMessages = messageRepository.findUnreadMessagesByReceiverId(receiverId);
-        unreadMessages.stream()
-            .filter(msg -> msg.getSenderId().equals(senderId))
-            .forEach(msg -> {
-                msg.setIsRead(true);
-                messageRepository.save(msg);
-            });
-    }
+	public List<Message> getUnreadMessages(String userId) {
+		return messageRepository.findUnreadMessagesByReceiverId(userId);
+	}
 
-    public Optional<Message> getMessageById(String id) {
-        return messageRepository.findById(id);
-    }
+	public List<String> getUserConversationPartners(String userId) {
+		return messageRepository.findUserConversationPartners(userId);
+	}
+
+	@Transactional
+	public void markMessagesAsRead(String senderId, String receiverId) {
+		List<Message> unreadMessages = messageRepository.findUnreadMessagesByReceiverId(receiverId);
+		unreadMessages.stream().filter(msg -> msg.getSenderId().equals(senderId)).forEach(msg -> {
+			msg.setIsRead(true);
+			messageRepository.save(msg);
+		});
+	}
+
+	public Optional<Message> getMessageById(String id) {
+		return messageRepository.findById(id);
+	}
+
+	public void sendNotfication(Message message, String senderId, String receiverId) {
+
+		List<User> users = userRepository.findAllById(List.of(receiverId, senderId));
+		Optional<User> receiver = users.stream().filter(u -> u.getId().equals(receiverId)).findFirst();
+		Optional<User> sender = users.stream().filter(u -> u.getId().equals(senderId)).findFirst();
+		if (receiver.isPresent() && sender.isPresent()) {
+			MultiUserNotificationRequestDto userNotification = new MultiUserNotificationRequestDto();
+			// Notify Only receiver
+			List<User> userReceiveNotfication = new ArrayList<>();
+			userReceiveNotfication.add(receiver.get());
+			userNotification.setUserIds(userReceiveNotfication);
+			userNotification.setTitle("New Message from " + sender.get().getName());
+			userNotification.setBody(message.getContent());
+			Map<String, String> dataMap = new HashMap<>();
+			// Send RequestId so that user can see request details once clicked on
+			// Notification
+			dataMap.put("type", "NEW_MESSAGE");
+			dataMap.put("senderId", sender.get().getId());
+			dataMap.put("reveiverId", receiver.get().getId());
+			dataMap.put("senderName", sender.get().getName());
+			userNotification.setData(dataMap);
+			notificationService.sendNotificationToUsers(userNotification);
+		}
+	}
 }
-
