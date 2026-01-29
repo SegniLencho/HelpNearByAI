@@ -97,7 +97,7 @@ public class MessageController {
 		messagingTemplate.convertAndSendToUser(messageDto.getReceiverId(), "/queue/messages", responseDto);
 
 		messagingTemplate.convertAndSendToUser(messageDto.getSenderId(), "/queue/messages", responseDto);
-		// Get receiver UserDetails from DB
+		// Send notification
 		messageService.sendNotfication(message,savedMessage.getSenderId(),savedMessage.getReceiverId());
 
 		return ResponseEntity.ok(responseDto);

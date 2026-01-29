@@ -63,7 +63,7 @@ public class MessageService {
 
 	public void sendNotfication(Message message, String senderId, String receiverId) {
 
-		List<User> users = userRepository.findAllById(List.of(receiverId, senderId));
+	List<User> users = userRepository.findAllById(List.of(receiverId, senderId));
 		Optional<User> receiver = users.stream().filter(u -> u.getId().equals(receiverId)).findFirst();
 		Optional<User> sender = users.stream().filter(u -> u.getId().equals(senderId)).findFirst();
 		if (receiver.isPresent() && sender.isPresent()) {
@@ -79,7 +79,7 @@ public class MessageService {
 			// Notification
 			dataMap.put("type", "NEW_MESSAGE");
 			dataMap.put("senderId", sender.get().getId());
-			dataMap.put("reveiverId", receiver.get().getId());
+			dataMap.put("receiverId", receiver.get().getId());
 			dataMap.put("senderName", sender.get().getName());
 			userNotification.setData(dataMap);
 			notificationService.sendNotificationToUsers(userNotification);
