@@ -70,4 +70,11 @@ public class MultiUserNotificationRequestDto {
 	public void setData(Map<String, String> data) {
 		this.data = data;
 	}
+
+	@Override
+	public String toString() {
+		return "MultiUserNotificationRequestDto [userIds=" + userIds + ", title=" + title + ", body=" + body
+				+ ", imageUrl=" + imageUrl + ", data=" + data + "]";
+	}
+	
 }

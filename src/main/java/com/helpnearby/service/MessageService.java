@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,14 +21,20 @@ import com.helpnearby.repository.UserRepository;
 @Service
 public class MessageService {
 
-	@Autowired
+	private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
+
 	private MessageRepository messageRepository;
 
-	@Autowired
 	private UserRepository userRepository;
 
-	@Autowired
 	private NotificationService notificationService;
+
+	public MessageService(MessageRepository messageRepository, UserRepository userRepository,
+			NotificationService notificationService) {
+		this.messageRepository = messageRepository;
+		this.userRepository = userRepository;
+		this.notificationService = notificationService;
+	}
 
 	public Message createMessage(Message message) {
 		if (message.getTimestamp() == null) {
@@ -62,11 +69,13 @@ public class MessageService {
 	}
 
 	public void sendNotfication(Message message, String senderId, String receiverId) {
-
-	List<User> users = userRepository.findAllById(List.of(receiverId, senderId));
+		logger.info("sendNotification");
+		logger.debug("sendNotification: {}", message);
+		List<User> users = userRepository.findAllById(List.of(receiverId, senderId));
 		Optional<User> receiver = users.stream().filter(u -> u.getId().equals(receiverId)).findFirst();
 		Optional<User> sender = users.stream().filter(u -> u.getId().equals(senderId)).findFirst();
 		if (receiver.isPresent() && sender.isPresent()) {
+			logger.info("sender and receiver details found ");
 			MultiUserNotificationRequestDto userNotification = new MultiUserNotificationRequestDto();
 			// Notify Only receiver
 			List<User> userReceiveNotfication = new ArrayList<>();
@@ -83,6 +92,9 @@ public class MessageService {
 			dataMap.put("senderName", sender.get().getName());
 			userNotification.setData(dataMap);
 			notificationService.sendNotificationToUsers(userNotification);
+			logger.info("Notification sent successfully " + userNotification.toString());
+			logger.debug("Incoming request payload: {}", userNotification.toString());
+
 		}
 	}
 }

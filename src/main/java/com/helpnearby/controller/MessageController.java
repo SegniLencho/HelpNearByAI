@@ -3,6 +3,8 @@ package com.helpnearby.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -18,10 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.helpnearby.dto.MessageDto;
 import com.helpnearby.entities.Message;
 import com.helpnearby.service.MessageService;
+import com.helpnearby.service.NotificationService;
 
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
+	private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
 
 	@Autowired
 	private MessageService messageService;
@@ -86,6 +90,7 @@ public class MessageController {
 	// REST endpoint to send a message (alternative to WebSocket)
 	@PostMapping("/send")
 	public ResponseEntity<MessageDto> sendMessageRest(@RequestBody MessageDto messageDto) {
+		logger.debug("/send endpoint called");
 		Message message = new Message(messageDto.getSenderId(), messageDto.getReceiverId(), messageDto.getContent());
 		Message savedMessage = messageService.createMessage(message);
 
@@ -98,7 +103,8 @@ public class MessageController {
 
 		messagingTemplate.convertAndSendToUser(messageDto.getSenderId(), "/queue/messages", responseDto);
 		// Send notification
-		messageService.sendNotfication(message,savedMessage.getSenderId(),savedMessage.getReceiverId());
+		logger.info("send Notification");
+		messageService.sendNotfication(message, savedMessage.getSenderId(), savedMessage.getReceiverId());
 
 		return ResponseEntity.ok(responseDto);
 	}

@@ -117,4 +117,13 @@ public class User {
 	public void setFcmToken(String fcmToken) {
 		this.fcmToken = fcmToken;
 	}
+
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", name=" + name + ", email=" + email + ", photoUrl=" + photoUrl + ", phoneNumber="
+				+ phoneNumber + ", latitude=" + latitude + ", longitude=" + longitude + ", authProvider=" + authProvider
+				+ ", createdAt=" + createdAt + ", profile_picture_url=" + profile_picture_url + ", fcmToken=" + fcmToken
+				+ "]";
+	}
+	
 }
