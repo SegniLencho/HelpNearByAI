@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +69,7 @@ public class MessageService {
 		return messageRepository.findById(id);
 	}
 
+	@Async
 	public void sendNotfication(Message message, String senderId, String receiverId) {
 		logger.info("sendNotification");
 		logger.debug("sendNotification: {}", message);

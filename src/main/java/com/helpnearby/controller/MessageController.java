@@ -25,7 +25,7 @@ import com.helpnearby.service.NotificationService;
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
-	private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
+	private static final Logger logger = LoggerFactory.getLogger(MessageController.class);
 
 	@Autowired
 	private MessageService messageService;
@@ -50,6 +50,10 @@ public class MessageController {
 
 		// Send to receiver's personal queue (user-specific destination)
 		messagingTemplate.convertAndSendToUser(messageDto.getReceiverId(), "/queue/messages", responseDto);
+		
+		logger.info("send Notification from chat.send");
+		messageService.sendNotfication(message, savedMessage.getSenderId(), savedMessage.getReceiverId());
+
 	}
 
 	// REST endpoint to get conversation between two users
