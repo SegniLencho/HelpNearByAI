@@ -3,6 +3,8 @@ package com.helpnearby.controller;
 import com.helpnearby.dto.FcmTokenDto;
 import com.helpnearby.dto.FileMeta;
 import com.helpnearby.dto.PresignedUpload;
+import com.helpnearby.dto.SendOtpRequest;
+import com.helpnearby.dto.VerifyOtpRequest;
 import com.helpnearby.entities.User;
 import com.helpnearby.service.S3UploadService;
 import com.helpnearby.service.UserService;
@@ -83,13 +85,13 @@ public class UserController {
 	}
 
 	@PostMapping("/sendOtp")
-	public String sendOtp(@RequestBody String phoneNumber) {
+	public String sendOtp(@RequestBody SendOtpRequest phoneNumber) {
 		return userService.sendOtp(phoneNumber);
 	}
 
 	@PostMapping("/verifyOtp")
-	public String verifyOtp(@RequestBody String phoneNumber, String code) {
-		return userService.verifyOtp(phoneNumber, code);
+	public String verifyOtp(@RequestBody VerifyOtpRequest verifyOtp) {
+		return userService.verifyOtp(verifyOtp);
 	}
 
 }
