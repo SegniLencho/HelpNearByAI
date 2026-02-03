@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.helpnearby.dto.SendOtpRequest;
+import com.helpnearby.dto.VerifyOtpRequest;
 import com.helpnearby.entities.User;
 import com.helpnearby.exception.InvalidOtpException;
 import com.helpnearby.repository.UserRepository;
@@ -46,21 +48,21 @@ public class UserService {
 		userRepository.deleteById(id);
 	}
 
-	public String sendOtp(String phoneNumber) {
-		Verification verification = Verification.creator(verifyServiceSid, phoneNumber, "sms").create();
+	public String sendOtp(SendOtpRequest request) {
+		Verification verification = Verification.creator(verifyServiceSid, request.getPhoneNumber(), "sms").create();
 		if (!"pending".equals(verification.getStatus())) {
 			throw new RuntimeException("OTP not sent");
 		}
 		return "OTP SENT";
 	}
 
-	public String verifyOtp(String phoneNumber, String code) {
-		VerificationCheck check = VerificationCheck.creator(verifyServiceSid).setTo(phoneNumber).setCode(code).create();
+	public String verifyOtp(VerifyOtpRequest verifyRequest) {
+		VerificationCheck check = VerificationCheck.creator(verifyServiceSid).setTo(verifyRequest.getPhoneNumber()).setCode(verifyRequest.getCode()).create();
 		if (!"approved".equals(check.getStatus())) {
 			throw new InvalidOtpException();
 		}
 
-		int updated = userRepository.markPhoneVerifiedByPhone(phoneNumber);
+		int updated = userRepository.markPhoneVerifiedByPhone(verifyRequest.getPhoneNumber());
 
 		if (updated != 1) {
 			throw new IllegalStateException("Phone verification update failed");
