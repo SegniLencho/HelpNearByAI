@@ -3,6 +3,7 @@ package com.helpnearby.controller;
 import com.helpnearby.dto.FcmTokenDto;
 import com.helpnearby.dto.FileMeta;
 import com.helpnearby.dto.PresignedUpload;
+import com.helpnearby.dto.ProfilePictureDto;
 import com.helpnearby.dto.SendOtpRequest;
 import com.helpnearby.dto.VerifyOtpRequest;
 import com.helpnearby.entities.User;
@@ -10,6 +11,8 @@ import com.helpnearby.service.S3UploadService;
 import com.helpnearby.service.UserService;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,6 +64,17 @@ public class UserController {
 			User.setId(id); // ensure ID remains the same
 			return ResponseEntity.ok(userService.updateUsers(User));
 		}).orElse(ResponseEntity.notFound().build());
+	}
+
+	// Update profile picture
+	@PutMapping("/updateProfilepic")
+	public ResponseEntity<User> updateProfilePicture(@Valid @RequestBody ProfilePictureDto profilePicDto) {
+		Optional<User> existedUser = userService.getByUserID(profilePicDto.getId());
+		if (existedUser.isPresent()) {
+			existedUser.get().setProfile_picture_url(profilePicDto.getProfile_picture_url());
+			return ResponseEntity.ok(userService.updateUsers(existedUser.get()));
+		}
+		return ResponseEntity.notFound().build();
 	}
 
 	// Delete

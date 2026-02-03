@@ -42,7 +42,10 @@ public class UserService {
 	public User updateUsers(User user) {
 		return userRepository.save(user);
 	}
-
+	
+	public User updateProfilePicture(User user) {
+		return userRepository.save(user);
+	}
 	// Delete
 	public void deleteUser(String id) {
 		userRepository.deleteById(id);
