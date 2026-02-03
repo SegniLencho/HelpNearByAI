@@ -46,4 +46,8 @@ public interface UserRepository extends JpaRepository<User, String> {
 	@Transactional
 	@Query("UPDATE User u SET u.phone_verified = true WHERE u.phoneNumber = :phoneNumber")
 	int markPhoneVerifiedByPhone(String phoneNumber);
+	
+	
+	
+
 }
