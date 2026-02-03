@@ -23,20 +23,17 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/user")
 public class UserController {
 
-
 	private UserService userService;
-	
-	private final S3UploadService s3UploadService;
-	
 
-	public UserController(S3UploadService s3UploadService,UserService userService) {
+	private final S3UploadService s3UploadService;
+
+	public UserController(S3UploadService s3UploadService, UserService userService) {
 		this.s3UploadService = s3UploadService;
-		this.userService=userService;
+		this.userService = userService;
 	}
 
-
 	// Create
-	
+
 	@PostMapping
 	public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
 		User created = userService.createUser(user);
@@ -55,8 +52,6 @@ public class UserController {
 		return userService.getByUserID(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
 	}
 
-	
-
 	// Update
 	@PutMapping("/{id}")
 	public ResponseEntity<User> updateUser(@PathVariable String id, @Valid @RequestBody User User) {
@@ -72,10 +67,10 @@ public class UserController {
 		userService.deleteUser(id);
 		return ResponseEntity.noContent().build();
 	}
-	
+
 	@PostMapping("/presign")
 	public PresignedUpload presign(@RequestBody FileMeta files) {
-		return  (s3UploadService.generatePresignedUrlProfilePicture(files.fileName(), files.contentType()));
+		return (s3UploadService.generatePresignedUrlProfilePicture(files.fileName(), files.contentType()));
 	}
 
 	// Register or update FCM token
@@ -86,4 +81,15 @@ public class UserController {
 			return ResponseEntity.ok(userService.updateUsers(existing));
 		}).orElse(ResponseEntity.notFound().build());
 	}
+
+	@PostMapping("/sendOtp")
+	public String sendOtp(@RequestBody String phoneNumber) {
+		return userService.sendOtp(phoneNumber);
+	}
+
+	@PostMapping("/verifyOtp")
+	public String verifyOtp(@RequestBody String phoneNumber, String code) {
+		return userService.verifyOtp(phoneNumber, code);
+	}
+
 }

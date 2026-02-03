@@ -29,6 +29,8 @@ public class User {
 	private String profile_picture_url;
 	@Column(name = "fcm_token")
 	private String fcmToken;
+	@Column(name = "phone_verified")
+	private boolean phone_verified;
 
 	public String getId() {
 		return id;
@@ -116,6 +118,15 @@ public class User {
 
 	public void setFcmToken(String fcmToken) {
 		this.fcmToken = fcmToken;
+	}
+
+	
+	public Boolean getPhoneVerified() {
+		return phone_verified;
+	}
+
+	public void setPhoneVerified(Boolean phoneVerified) {
+		this.phone_verified = phoneVerified;
 	}
 
 	@Override
